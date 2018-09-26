@@ -1,0 +1,25 @@
+uploadDir: /home/zuohaimin/
+secret: 171c1081-9840-4fba-a2fa-7ebc850684aa
+mail:
+      auth: true
+      host: smtp.qq.com
+      port: 587
+      user: 2975069636@qq.com
+      password: kbmawgwgasajdhba
+
+
+
+server:
+  port: 8080
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 260813
+    url: jdbc:mysql://localhost:3306/cinsc?characterEncoding=utf-8&useSSL=false
+  jpa:
+    open-in-view: true
+    show-sql: true
+  devtools:
+    livereload:
+      enabled: true
