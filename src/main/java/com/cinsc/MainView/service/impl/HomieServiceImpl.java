@@ -20,6 +20,7 @@ import com.cinsc.MainView.utils.ShiroUtil;
 import com.cinsc.MainView.utils.convert.PictureToBase64;
 import com.cinsc.MainView.utils.key.KeyUtil;
 import com.cinsc.MainView.vo.FriendVo;
+import com.cinsc.MainView.vo.NoticeVo;
 import com.cinsc.MainView.vo.ResultVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -102,6 +103,25 @@ public class HomieServiceImpl implements HomieService {
         notice.setNoticeTo(noticeDto.getTo());
         notice.setContent(noticeDto.getContent());
         return notice;
+    }
+
+    private String getUsername(String userAccount){
+        UserDetail userDetail = userDetailRepository.findByUserId(getUserId(userAccount));
+        if (userDetail == null){
+            log.info("通讯录 获取用户名 userDetail=null");
+            throw new SystemException(ResultEnum.DATA_ERROR);
+        }
+        return userDetail.getUserName();
+    }
+    private List<NoticeVo> getNoticeVo(List<Notice> noticeList){
+        List<NoticeVo> noticeVoList = new ArrayList<>();
+        noticeList.forEach(o->{
+            NoticeVo noticeVo = new NoticeVo();
+            BeanUtils.copyProperties(o,noticeVo);
+            noticeVo.setUsername(getUsername(o.getNoticeFrom()));
+            noticeVoList.add(noticeVo);
+        });
+        return noticeVoList;
     }
 
     @Override
@@ -266,13 +286,14 @@ public class HomieServiceImpl implements HomieService {
     public ResultVo getUnreadMessage(HttpServletRequest request) {
         List<Notice> noticeList = noticeRepository.findByNoticeToAndStatus(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.UNREAD.getCode());
         log.info("得到属于自己的未读消息 noticeList={}",noticeList);
-        return ResultVoUtil.success(noticeList);
+
+        return ResultVoUtil.success(getNoticeVo(noticeList));
     }
 
     @Override
     public ResultVo getReadedMessage(HttpServletRequest request) {
         List<Notice> noticeList = noticeRepository.findByNoticeToAndStatus(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.READ.getCode());
         log.info("得到属于自己的已读消息 noticeList={}",noticeList);
-        return ResultVoUtil.success(noticeList);
+        return ResultVoUtil.success(getNoticeVo(noticeList));
     }
 }
