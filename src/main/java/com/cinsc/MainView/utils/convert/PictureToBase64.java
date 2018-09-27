@@ -26,7 +26,7 @@ public class PictureToBase64 {
         }catch (IOException e){
             e.printStackTrace();
         }
-        log.info("图片转码 data={}",data);
+        log.info("图片转码 ........");
         BASE64Encoder encoder = new BASE64Encoder();
         return encoder.encode(data);
     }
