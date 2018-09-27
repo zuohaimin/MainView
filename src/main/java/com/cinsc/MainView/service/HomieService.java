@@ -37,6 +37,12 @@ public interface HomieService {
     /*得到消息*/
     ResultVo getOwnerMessage(HttpServletRequest request);
 
+    /*得到自己未读的消息*/
+    ResultVo getUnreadMessage(HttpServletRequest request);
+
+    /*得到自己已读的消息*/
+    ResultVo getReadedMessage(HttpServletRequest request);
+
     /*好友名片显示*/
     ResultVo getFriendCards(Integer userId);
 

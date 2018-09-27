@@ -1,5 +1,6 @@
 package com.cinsc.MainView.model;
 
+import com.cinsc.MainView.constant.MainViewConstant;
 import com.cinsc.MainView.enums.NoticeEnum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -35,7 +36,6 @@ public class Notice {
     private String content;
 
     /*标题*/
-    //TODO 解耦
-    private String title = "无标题";
+    private String title = MainViewConstant.NOTICE_DEFAULT_TITLE;
 
 }

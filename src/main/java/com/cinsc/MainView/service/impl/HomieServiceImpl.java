@@ -1,5 +1,6 @@
 package com.cinsc.MainView.service.impl;
 
+import com.cinsc.MainView.constant.MainViewConstant;
 import com.cinsc.MainView.dto.NoticeDto;
 import com.cinsc.MainView.enums.MsgStatusEnum;
 import com.cinsc.MainView.enums.NoticeEnum;
@@ -146,10 +147,10 @@ public class HomieServiceImpl implements HomieService {
 
     @Override
     public ResultVo sendCheckMessage(NoticeDto noticeDto,HttpServletRequest request) {
+        /*判断之前时候有添加好友记录*/
         Notice notice = getNotice(noticeDto,request);
-        //TODO 信息解耦
         notice.setId(KeyUtil.genUniqueKey());
-        notice.setTitle("请求加好友");
+        notice.setTitle(MainViewConstant.NOTICE_FRIEND_TITLE);
         Notice noticeSave = noticeRepository.save(notice);
         log.info("发送验证信息 noticeSave={}",noticeSave);
         return ResultVoUtil.success();
@@ -235,6 +236,10 @@ public class HomieServiceImpl implements HomieService {
         userMsg.put("origin",userDetail.getOrigin());
         userMsg.put("education",userDetail.getEducation());
         userMsg.put("description",userDetail.getDescription());
+        //设置 qq,phone,mailbox为空
+        userMsg.put("qq","");
+        userMsg.put("phone","");
+        userMsg.put("mailbox","");
         if (userDetail.getQqStatus().equals(MsgStatusEnum.OPEN.getCode())){
             userMsg.put("qq",userDetail.getQq());
         }
@@ -255,5 +260,19 @@ public class HomieServiceImpl implements HomieService {
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
         return ResultVoUtil.success();
+    }
+
+    @Override
+    public ResultVo getUnreadMessage(HttpServletRequest request) {
+        List<Notice> noticeList = noticeRepository.findByNoticeToAndStatus(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.UNREAD.getCode());
+        log.info("得到属于自己的未读消息 noticeList={}",noticeList);
+        return ResultVoUtil.success(noticeList);
+    }
+
+    @Override
+    public ResultVo getReadedMessage(HttpServletRequest request) {
+        List<Notice> noticeList = noticeRepository.findByNoticeToAndStatus(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.READ.getCode());
+        log.info("得到属于自己的已读消息 noticeList={}",noticeList);
+        return ResultVoUtil.success(noticeList);
     }
 }

@@ -14,4 +14,5 @@ import java.util.List;
 @Repository
 public interface NoticeRepository extends JpaRepository<Notice,String> {
     List<Notice> findByNoticeTo(String to);
+    List<Notice> findByNoticeToAndStatus(String to,Integer status);
 }

@@ -156,6 +156,27 @@ public class HomieController {
         return homieService.getOwnerMessage(request);
     }
 
+    /**
+     * 获取发给自己未读的消息
+     * @param request
+     * @return
+     */
+    @ApiOperation(value = "获取发给自己未读的消息")
+    @RequestMapping(value = "/getUnreadMessage",method = RequestMethod.GET)
+    public ResultVo getUnreadMessage(HttpServletRequest request) {
+        return homieService.getUnreadMessage(request);
+    }
+
+    /**
+     * 获取发给自己已读的消息
+     * @param request
+     * @return
+     */
+    @ApiOperation(value = "获取发给自己已读的消息")
+    @RequestMapping(value = "/getReadedMessage",method = RequestMethod.GET)
+    public ResultVo getReadedMessage(HttpServletRequest request) {
+        return homieService.getReadedMessage(request);
+    }
 
     /**
      * 获取好友名片
