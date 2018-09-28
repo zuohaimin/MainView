@@ -58,6 +58,7 @@ public class HomieServiceImpl implements HomieService {
     }
 
 
+
     /**
      * 获得好友们的Id集合
      * @param userId
@@ -68,9 +69,9 @@ public class HomieServiceImpl implements HomieService {
     private List<Integer> getHomieIdList(Integer userId, List<Friends> friendsList){
         List<Integer> homieIdList = new ArrayList<>();
         friendsList.forEach(o->{
-            if (o.getAId() == userId){
+            if (o.getAId().equals(userId)){
                 homieIdList.add(o.getBId());
-            }else if (o.getBId() == userId){
+            }else if (o.getBId().equals(userId)){
                 homieIdList.add(o.getAId());
             }else{
                 throw new SystemException(ResultEnum.DATA_ERROR);
@@ -78,6 +79,7 @@ public class HomieServiceImpl implements HomieService {
         });
         return homieIdList;
     }
+
 
     private Integer getUserId(String userAccount) {
         UserLogin userLogin = userLoginRepository.findByUserAccount(userAccount);
@@ -182,7 +184,12 @@ public class HomieServiceImpl implements HomieService {
 
     @Override
     public ResultVo sendCheckMessage(NoticeDto noticeDto,HttpServletRequest request) {
-        /*判断之前时候有添加好友记录*/
+        /*判断之前是否为好友*/
+        if (ifFriend(noticeDto.getTo(),request)){
+            log.info("[发送确认信息] 已经为好友");
+            throw new SystemException(ResultEnum.DATA_ERROR);
+
+        }
         Notice notice = getNotice(noticeDto,request);
         notice.setId(KeyUtil.genUniqueKey());
         notice.setTitle(MainViewConstant.NOTICE_FRIEND_TITLE);
