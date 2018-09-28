@@ -85,7 +85,7 @@ public class HomieController {
      */
     @ApiOperation(value = "发送信息")
     @RequestMapping(value = "/sendMessage",method = RequestMethod.POST)
-    public ResultVo sendMessage(@Valid NoticeDto noticeDto,
+    public ResultVo sendMessage(@Valid @RequestBody NoticeDto noticeDto,
                                      BindingResult bindingResult,
                                      HttpServletRequest request) {
         if (bindingResult.hasErrors()){

@@ -25,7 +25,6 @@ import com.cinsc.MainView.vo.ResultVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.devtools.tunnel.payload.HttpTunnelPayload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +38,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
+@Transactional
 public class HomieServiceImpl implements HomieService {
 
     private FriendsRepository friendsRepository;
@@ -124,6 +124,10 @@ public class HomieServiceImpl implements HomieService {
         return noticeVoList;
     }
 
+    private boolean ifFriend(String friendAccount, HttpServletRequest request) {
+       return (friendsRepository.findByAIdAndBId(ShiroUtil.getUserId(request),getUserId(friendAccount)) == null);
+
+    }
     @Override
     public ResultVo getFriendsList(HttpServletRequest request) {
         Integer userId = ShiroUtil.getUserId(request);
@@ -180,6 +184,12 @@ public class HomieServiceImpl implements HomieService {
     public ResultVo confirmCheckMessage(String id, String friendAccount, HttpServletRequest request) {
         /*读消息*/
         readMessage(id);
+        /*判断是否已经是好友*/
+        if (ifFriend(friendAccount,request)){
+            log.info("确认添加好友 已经是好友 friendAccount={}",friendAccount);
+            throw new SystemException(ResultEnum.DATA_ERROR);
+        }
+
         /*保存好友 (在数据库中存在两条顺序不相同的记录)*/
         Integer friendId = getUserId(friendAccount);
         Integer ownerId = ShiroUtil.getUserId(request);
@@ -208,15 +218,17 @@ public class HomieServiceImpl implements HomieService {
     @Override
     public ResultVo readMessage(String id) {
 
-        noticeRepository.findById(id).ifPresent(o->{o.setStatus(NoticeEnum.READ.getCode());
-                                                    noticeRepository.save(o);});
+        Notice notice = noticeRepository.findById(id).orElseThrow(()->new SystemException(ResultEnum.DATA_ERROR));
+        notice.setStatus(NoticeEnum.READ.getCode());
+        noticeRepository.save(notice);
         return ResultVoUtil.success();
     }
 
     @Override
     public ResultVo unreadMessage(String id) {
-        noticeRepository.findById(id).ifPresent(o->{o.setStatus(NoticeEnum.UNREAD.getCode());
-                                                noticeRepository.save(o);});
+        Notice notice = noticeRepository.findById(id).orElseThrow(()->new SystemException(ResultEnum.DATA_ERROR));
+        notice.setStatus(NoticeEnum.UNREAD.getCode());
+        noticeRepository.save(notice);
         return ResultVoUtil.success();
     }
 
@@ -275,11 +287,7 @@ public class HomieServiceImpl implements HomieService {
 
     @Override
     public ResultVo isFriend(String userAccount, HttpServletRequest request) {
-        Friends friends = friendsRepository.findByAIdAndBId(ShiroUtil.getUserId(request),getUserId(userAccount));
-        if (friends == null){
-            throw new SystemException(ResultEnum.NOT_FOUND);
-        }
-        return ResultVoUtil.success();
+       return ResultVoUtil.success(ifFriend(userAccount,request));
     }
 
     @Override

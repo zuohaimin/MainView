@@ -28,7 +28,7 @@ public class SystemExceptionHandler {
 
     @ExceptionHandler(SystemException.class)
     public ResultVo handleSystemException(SystemException exception){
-        log.error(exception.getMessage());
+        log.error(exception.getCode()+"------"+exception.getMessage());
         return ResultVoUtil.erro(exception.getCode(),exception.getMessage());
     }
 
