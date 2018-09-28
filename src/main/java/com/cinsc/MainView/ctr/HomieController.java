@@ -79,20 +79,19 @@ public class HomieController {
 
     /**
      * 发送信息
-     * @param noticeDto
-     * @param bindingResult
+     * @param userId
+     * @param content
+     * @param request
      * @return
      */
     @ApiOperation(value = "发送信息")
     @RequestMapping(value = "/sendMessage",method = RequestMethod.POST)
-    public ResultVo sendMessage(@Valid @RequestBody NoticeDto noticeDto,
-                                     BindingResult bindingResult,
+    public ResultVo sendMessage(@RequestParam(value = "userId",required = false) Integer userId,
+                                @RequestParam(value = "content",required = false) String content,
                                      HttpServletRequest request) {
-        if (bindingResult.hasErrors()){
-            log.error("[发送信息]参数不正确:noticeDto={}",noticeDto);
-            throw new SystemException(ResultEnum.PARAM_ERROR);
-        }
-        return homieService.sendMessage(noticeDto,request);
+        Assert.isNull(userId,"userId 不能为空 | 含有空格 ");
+        Assert.isBlank(content,"content 不能为空 | 含有空格");
+        return homieService.sendMessage(userId, content, request);
     }
 
 

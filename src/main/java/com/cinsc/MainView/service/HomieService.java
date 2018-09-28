@@ -32,7 +32,7 @@ public interface HomieService {
     ResultVo deleteFriend(Integer userId, HttpServletRequest request);
 
     /*发送消息*/
-    ResultVo sendMessage(NoticeDto noticeDto, HttpServletRequest request);
+    ResultVo sendMessage(Integer userId, String content, HttpServletRequest request);
 
     /*得到消息*/
     ResultVo getOwnerMessage(HttpServletRequest request);

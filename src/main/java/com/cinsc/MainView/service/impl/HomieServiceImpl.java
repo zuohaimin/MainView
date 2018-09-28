@@ -104,6 +104,17 @@ public class HomieServiceImpl implements HomieService {
         notice.setContent(noticeDto.getContent());
         return notice;
     }
+    private Notice getNotice(Integer userId, String content, HttpServletRequest request){
+        Integer owerId = ShiroUtil.getUserId(request);
+        UserLogin userLogin = userLoginRepository.findById(owerId).orElseThrow(()->new SystemException(ResultEnum.UNkNOWN_ACCOUNT));
+        log.info("装配notice userLogin={}",userLogin);
+        Notice notice = new Notice();
+        notice.setId(KeyUtil.genUniqueKey());
+        notice.setNoticeFrom(userLogin.getUserAccount());
+        notice.setNoticeTo(getUserAccount(userId));
+        notice.setContent(content);
+        return notice;
+    }
 
     private String getUsername(String userAccount){
         UserDetail userDetail = userDetailRepository.findByUserId(getUserId(userAccount));
@@ -244,8 +255,8 @@ public class HomieServiceImpl implements HomieService {
     }
 
     @Override
-    public ResultVo sendMessage(NoticeDto noticeDto,HttpServletRequest request) {
-        Notice noticeSave = noticeRepository.save(getNotice(noticeDto,request));
+    public ResultVo sendMessage(Integer userId, String content, HttpServletRequest request) {
+        Notice noticeSave = noticeRepository.save(getNotice(userId,content,request));
         log.info("发送验证信息 noticeSave={}",noticeSave);
         return ResultVoUtil.success();
     }
