@@ -64,6 +64,7 @@ public class ShiroConfig {
         filterRuleMap.put("/homie/**", "jwt");
         filterRuleMap.put("/personal/**", "jwt");
         filterRuleMap.put("/sys/**", "jwt");
+        filterRuleMap.put("/arrange/**","jwt");
         // 访问401和404页面不通过我们的Filter
         //TODO 配置自己的url规则
 
