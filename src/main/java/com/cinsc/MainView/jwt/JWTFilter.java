@@ -43,8 +43,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
         String authorization = httpServletRequest.getHeader("Authorization");
         String userAccount = JWTUtil.getUserAccount(authorization);
         Integer userId = JWTUtil.getUserId(authorization);
-        System.out.println("authorization = "+authorization);
-        System.out.println("userId = "+userId+", userAccount = "+userAccount+", secret = "+secret);
+        System.out.println("authorization = "+authorization+", userId = "+userId+", userAccount = "+userAccount+", secret = "+secret);
         return JWTUtil.verify(authorization,userAccount,userId,secret);
     }
 
