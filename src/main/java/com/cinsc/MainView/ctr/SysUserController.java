@@ -1,5 +1,7 @@
 package com.cinsc.MainView.ctr;
 
+import com.cinsc.MainView.annotation.CheckPermission;
+import com.cinsc.MainView.annotation.enums.PermsEnum;
 import com.cinsc.MainView.dto.UserDto;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
@@ -35,6 +37,7 @@ public class SysUserController
         this.sysUserService = sysUserService;
     }
 
+    //TODO 增加修改用户和角色对应关系的接口(关系: 一一对应)
 
     /**
      * 新增用户
@@ -42,7 +45,7 @@ public class SysUserController
      * @param result
      * @return
      */
-    @RequiresPermissions("sys:user:insert")
+    @CheckPermission(perms = PermsEnum.TEACHER)
     @RequestMapping(value = "/saveUser",method = RequestMethod.POST)
     public ResultVo saveRole(@Valid @RequestBody UserDto sysUserFrom,
                              BindingResult result){
@@ -53,28 +56,14 @@ public class SysUserController
         return sysUserService.saveUser(sysUserFrom);
     }
 
-    /**
-     * 查询用户列表
-     * @param page
-     * @param size
-     * @param name
-     * @return
-     */
-    @RequiresPermissions("sys:user:list")
-    @RequestMapping(value = "/selectUserList",method = RequestMethod.GET)
-    public ResultVo selectUserList(@RequestParam(value = "page",defaultValue = "0")Integer page,
-                                   @RequestParam(value = "size",defaultValue = "10")Integer size,
-                                   @RequestParam(value = "name",defaultValue = "")String name){
-        PageRequest pageRequest = new PageRequest(page,size);
-        return sysUserService.selectUserList(name,pageRequest);
-    }
+
 
     /**
      * 查询用户详情
      * @param id
      * @return
      */
-    @RequiresPermissions("sys:user:detail")
+    @CheckPermission(perms = PermsEnum.TEACHER)
     @GetMapping("/selectUserDetail")
     public ResultVo selectUserDetail(@RequestParam(value = "id",required = false)Integer id){
         Assert.isNull(id,"id不能为空");
@@ -86,7 +75,7 @@ public class SysUserController
      * @param sysUserFrom
      * @return
      */
-    @RequiresPermissions("sys:user:update")
+    @CheckPermission(perms = PermsEnum.TEACHER)
     @PutMapping("/updateUser")
     public ResultVo updateUser(@Valid @RequestBody UserDto sysUserFrom,
                                BindingResult bindingResult){
@@ -102,7 +91,7 @@ public class SysUserController
      * @param id
      * @return
      */
-    @RequiresPermissions("sys:user:delete")
+    @CheckPermission(perms = PermsEnum.TEACHER)
     @GetMapping("/deleteUser/{id}")
     public ResultVo deleteUser(@PathVariable Integer id){
         return sysUserService.deleteUser(id);

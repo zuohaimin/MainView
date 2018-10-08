@@ -53,6 +53,6 @@ public class UserDto {
     /**
      * 用户角色
      */
-    private List<Role> sysRoles;
+    private Role sysRole;
 
 }

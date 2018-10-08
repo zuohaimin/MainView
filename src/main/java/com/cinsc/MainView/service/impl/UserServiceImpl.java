@@ -1,5 +1,6 @@
 package com.cinsc.MainView.service.impl;
 
+import com.cinsc.MainView.annotation.convert.RoleIdToName;
 import com.cinsc.MainView.dto.UserDto;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.model.Role;
@@ -27,6 +28,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,39 +86,15 @@ public class UserServiceImpl implements UserService {
         log.info("用户信息成功保存，sysUserSave={}",sysUserSave);
 
         /*用户对应角色保存*/
-        List<UserRole> sysUserRoleList = new ArrayList<>();
-        sysUserFrom.getSysRoles().forEach(o->{
-            UserRole sysUserRole = new UserRole();
-            sysUserRole.setUserId(sysUserSave.getUserId());
-            sysUserRole.setRoleId(o.getId());
-            sysUserRoleList.add(sysUserRole);
-        });
-
-        List<UserRole> sysUserRoleListSave = userRoleRepository.saveAll(sysUserRoleList);
-        log.info("用户对应角色保存成功，sysUserRoleListSave={}",sysUserRoleListSave);
+        UserRole sysUserRole = new UserRole();
+        sysUserRole.setUserId(sysUserSave.getUserId());
+        sysUserRole.setRoleId(sysUserFrom.getId());
+        UserRole userRoleSave = userRoleRepository.save(sysUserRole);
+        log.info("用户对应角色保存成功，userRoleSave={}",userRoleSave);
         return ResultVoUtil.success();
     }
 
-    /**
-     * //TODO 复杂查询加分页的一种实现方法
-     * @param name
-     * @param pageable
-     * @return
-     */
-    @Override
-    public ResultVo selectUserList(String name, Pageable pageable) {
-        Specification<UserLogin> specification = (Root<UserLogin> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder
-        criteriaBuilder)->{
 
-                List<Predicate> predicate = new ArrayList<>();
-                if(StringUtils.isNoneBlank(name)){
-                    predicate.add(criteriaBuilder.like(root.get("name").as(String.class), JPAUtil.like(name)));
-                }
-                Predicate[] pre = new Predicate[predicate.size()];
-                return criteriaQuery.where(predicate.toArray(pre)).getRestriction();
-        };
-        return ResultVoUtil.success(userLoginRepository.findAll(specification,pageable));
-    }
 
     /**
      *
@@ -124,30 +102,34 @@ public class UserServiceImpl implements UserService {
      * @param id
      * @return
      */
+
     @Override
     public ResultVo selectUserDetail(Integer id) {
-        /*查询用户基本信息*/
-        UserVo sysUserVo = new UserVo();
-        UserLogin sysUser = userLoginRepository.findById(id).get();
-        BeanUtils.copyProperties(sysUser,sysUserVo);
-        sysUserVo.setPassword("******");
-        log.info("用户基本信息：sysUser = "+sysUser);
+//        /*查询用户基本信息*/
+//
+//        UserVo sysUserVo = new UserVo();
+//        UserLogin sysUser = userLoginRepository.findById(id).get();
+//        BeanUtils.copyProperties(sysUser,sysUserVo);
+//        sysUserVo.setPassword("******");
+//        log.info("用户基本信息：sysUser = "+sysUser);
+//
+//        /*取出角色Id*/
+//        List<Integer> roleIds = new ArrayList<>();
+//        userRoleRepository.findByUserId(id).stream()
+//                                            .forEach(o->{
+//                                                roleIds.add(o.getRoleId());
+//
+//        });
+//
+//        /*查询该用户用户角色*/
+//
+//        List<Role> sysRoles = roleRepository.findAllById(roleIds);
+//        log.info("用户角色：sysRoles = "+ sysRoles);
+//        sysUserVo.setSysRoles(sysRoles);
+//
+//        return ResultVoUtil.success(sysUserVo);
+        return null;
 
-        /*取出角色Id*/
-        List<Integer> roleIds = new ArrayList<>();
-        userRoleRepository.findByUserId(id).stream()
-                                            .forEach(o->{
-                                                roleIds.add(o.getRoleId());
-
-        });
-
-        /*查询该用户用户角色*/
-
-        List<Role> sysRoles = roleRepository.findAllById(roleIds);
-        log.info("用户角色：sysRoles = "+ sysRoles);
-        sysUserVo.setSysRoles(sysRoles);
-
-        return ResultVoUtil.success(sysUserVo);
     }
 
     /**
@@ -184,15 +166,11 @@ public class UserServiceImpl implements UserService {
         /*初始化用户角色*/
         userRoleRepository.deleteByUserId(sysUserFrom.getId());
         /*添加用户角色*/
-        List<UserRole> userRoleList = new ArrayList<>();
-        sysUserFrom.getSysRoles().stream().forEach(o->{
-            UserRole sysUserRole = new UserRole();
-            sysUserRole.setUserId(sysUserFrom.getId());
-            sysUserRole.setRoleId(o.getId());
-            userRoleList.add(sysUserRole);
-        });
-        List<UserRole> userRoleListSave = userRoleRepository.saveAll(userRoleList);
-        log.info("用户角色: userRoleListSave = {}",userRoleListSave);
+        UserRole sysUserRole = new UserRole();
+        sysUserRole.setUserId(sysUserFrom.getId());
+        sysUserRole.setRoleId(sysUserFrom.getId());
+        UserRole userRoleSave = userRoleRepository.save(sysUserRole);
+        log.info("用户角色: userRoleSave = {}",userRoleSave);
         return ResultVoUtil.success();
     }
 
@@ -206,5 +184,11 @@ public class UserServiceImpl implements UserService {
         userRoleRepository.deleteByUserId(id);
         userLoginRepository.deleteById(id);
         return ResultVoUtil.success();
+    }
+
+
+    @Override
+    public Integer getRoleId(HttpServletRequest request) {
+        return userRoleRepository.findByUserId(ShiroUtil.getUserId(request)).getRoleId();
     }
 }

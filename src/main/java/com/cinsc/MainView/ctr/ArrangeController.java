@@ -1,5 +1,7 @@
 package com.cinsc.MainView.ctr;
 
+import com.cinsc.MainView.annotation.CheckPermission;
+import com.cinsc.MainView.annotation.enums.PermsEnum;
 import com.cinsc.MainView.dto.ArrangeDto;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
@@ -33,7 +35,7 @@ public class ArrangeController {
         this.arrangeService = arrangeService;
     }
 
-    //TODO 授权管理
+    @CheckPermission(perms = PermsEnum.TEACHER)
     @ApiOperation(value = "新建工作安排")
     @RequestMapping(value = "/addArrange", method = RequestMethod.POST)
     public ResultVo addArrange(@Valid @RequestBody ArrangeDto arrangeDto,

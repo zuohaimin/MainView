@@ -10,10 +10,11 @@ import lombok.Getter;
 @Getter
 public enum RoleEnum {
 
-    UNDERGRADUATE(1,"本科生"),
-    GRADUATE(2,"研究生"),
-    TEACHER(3,"老师"),
-    MANAGER(4,"管理员"),
+    VISITOR(5,"游客"),
+    UNDERGRADUATE(4,"本科生"),
+    GRADUATE(3,"研究生"),
+    TEACHER(2,"老师"),
+    MANAGER(1,"管理员"),
     ;
     private Integer code;
     private String msg;
