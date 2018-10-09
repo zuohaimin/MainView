@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @Author: 束手就擒
@@ -68,6 +65,12 @@ public class ArrangeServiceImpl implements ArrangeService {
         return userDetail.getUserName();
     }
 
+    private Date calculateDate(Integer days, Date now){
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(now);
+        calendar.add(Calendar.DATE,+days);
+        return calendar.getTime();
+    }
     /**
      * 装配ArrangeVo
      *
@@ -106,7 +109,9 @@ public class ArrangeServiceImpl implements ArrangeService {
         String arrangeId = KeyUtil.genUniqueKey();
         arrange.setArrangeId(arrangeId);
         arrange.setAuthor(ShiroUtil.getUserId(request));
-        arrange.setDeadLine(arrangeDto.getDeadLine());
+        Date now = new Date();
+        arrange.setCreateTime(now);
+        arrange.setDeadLine(calculateDate(arrangeDto.getDays(),now));
         arrange.setDescription(arrangeDto.getMsg());
         arrange.setTotalNum(arrangeDto.getTransactorIdList().size());
         Arrange arrangeSave = arrangeRepository.save(arrange);
@@ -122,15 +127,15 @@ public class ArrangeServiceImpl implements ArrangeService {
         List<Transactor> transactorListSave = transactorRepository.saveAll(transactorList);
         log.info("添加执行人集 transactorListSave = {}", transactorListSave);
 
-        List<Cc> ccList = new ArrayList<>();
-        arrangeDto.getCarbonCopyIdList().forEach(o -> {
-            Cc cc = new Cc();
-            cc.setArrangeId(arrangeId);
-            cc.setUserId(o);
-            ccList.add(cc);
-        });
-        List<Cc> ccListSave = ccRepository.saveAll(ccList);
-        log.info("添加抄送人集 ccListSave = {}", ccListSave);
+//        List<Cc> ccList = new ArrayList<>();
+//        arrangeDto.getCarbonCopyIdList().forEach(o -> {
+//            Cc cc = new Cc();
+//            cc.setArrangeId(arrangeId);
+//            cc.setUserId(o);
+//            ccList.add(cc);
+//        });
+//        List<Cc> ccListSave = ccRepository.saveAll(ccList);
+//        log.info("添加抄送人集 ccListSave = {}", ccListSave);
         return ResultVoUtil.success();
     }
 

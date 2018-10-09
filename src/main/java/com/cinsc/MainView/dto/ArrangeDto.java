@@ -20,11 +20,10 @@ public class ArrangeDto {
     @NotEmpty(message = "任务信息不能为空")
     private String msg;
 
-    @Future(message = "时间不能早于当前时间")
-    private Date deadLine;
+    private Integer days;
 
-    /*抄送人Id集合*/
-    private List<Integer> carbonCopyIdList;
+//    /*抄送人Id集合*/
+//    private List<Integer> carbonCopyIdList;
 
 
     /*执行人Id集合*/

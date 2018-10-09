@@ -30,6 +30,9 @@ public class Arrange {
     /*完成人数*/
     private Integer finishNum = 0;
 
+    /*创建时间*/
+    private Date createTime;
+
     /*截止时间*/
     private Date deadLine;
 }
