@@ -95,7 +95,12 @@ public class ArrangeServiceImpl implements ArrangeService {
     }
 
 
-
+    private List<Arrange> getWorkArrange(List<Arrange> arrangeList){
+        return  arrangeList.stream().filter(o->!MainViewConstant.DEFAULT_SCHEDULE_TOTALNUM.equals(o.getTotalNum())).collect(Collectors.toList());
+    }
+    private List<Arrange> getScheduleArrange(List<Arrange> arrangeList){
+        return  arrangeList.stream().filter(o->MainViewConstant.DEFAULT_SCHEDULE_TOTALNUM.equals(o.getTotalNum())).collect(Collectors.toList());
+    }
     private Set<Integer> removalRepeat(List<Integer> transactorIdList){
         Set<Integer> transactorIdSet = new HashSet<>();
         transactorIdList.forEach(o->
@@ -198,6 +203,7 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("[获得未完成安排] arrangeList = null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
+        arrangeList = getWorkArrange(arrangeList);
         return ResultVoUtil.success(getArrangeVoList(arrangeList));
     }
 
@@ -208,12 +214,14 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("[获得已完成安排] arrangeList = null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
+        arrangeList = getWorkArrange(arrangeList);
         return ResultVoUtil.success(getArrangeVoList(arrangeList));
     }
 
     @Override
     public ResultVo getSendedArrange(HttpServletRequest request) {
         List<Arrange> arrangeList = arrangeRepository.findByAuthor(ShiroUtil.getUserId(request));
+        arrangeList = getWorkArrange(arrangeList);
         return ResultVoUtil.success(getArrangeVoList(arrangeList));
     }
 
@@ -233,6 +241,7 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("[获得我执行的安排] arrangeList == null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
+        arrangeList = getWorkArrange(arrangeList);
         return ResultVoUtil.success(getArrangeVoList(arrangeList));
     }
 
@@ -244,6 +253,7 @@ public class ArrangeServiceImpl implements ArrangeService {
                 arrangeIdSet.add(o.getArrangeId())
         );
         List<Arrange> arrangeList = arrangeRepository.findAllById(arrangeIdSet);
+        arrangeList = getWorkArrange(arrangeList);
         return ResultVoUtil.success(getArrangeVoList(arrangeList));
     }
 
