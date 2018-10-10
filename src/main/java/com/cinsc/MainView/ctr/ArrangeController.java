@@ -113,4 +113,13 @@ public class ArrangeController {
         Assert.isBlank(arrangeId,"arrangeId不能为空|含有空格");
         return arrangeService.finishScheduleArrange(arrangeId,request);
     }
+
+    @ApiOperation(value = "获得日程安排")
+    @RequestMapping(value = "/getScheduleArrange", method = RequestMethod.GET)
+    public ResultVo getScheduleArrange(@RequestParam(value = "time",required = false)Date time,
+                                          HttpServletRequest request){
+        log.info("[获得日程安排]");
+        Assert.isNull(time,"time不能为空|含有空格");
+        return arrangeService.getScheduleArrange(time,request);
+    }
 }

@@ -203,8 +203,8 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("[获得未完成安排] arrangeList = null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        arrangeList = getWorkArrange(arrangeList);
-        return ResultVoUtil.success(getArrangeVoList(arrangeList));
+        List<Arrange> arrangeWorkList = getWorkArrange(arrangeList);
+        return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
     }
 
     @Override
@@ -214,15 +214,15 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("[获得已完成安排] arrangeList = null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        arrangeList = getWorkArrange(arrangeList);
-        return ResultVoUtil.success(getArrangeVoList(arrangeList));
+        List<Arrange> arrangeWorkList = getWorkArrange(arrangeList);
+        return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
     }
 
     @Override
     public ResultVo getSendedArrange(HttpServletRequest request) {
         List<Arrange> arrangeList = arrangeRepository.findByAuthor(ShiroUtil.getUserId(request));
-        arrangeList = getWorkArrange(arrangeList);
-        return ResultVoUtil.success(getArrangeVoList(arrangeList));
+        List<Arrange> arrangeWorkList = getWorkArrange(arrangeList);
+        return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
     }
 
     @Override
@@ -241,8 +241,8 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("[获得我执行的安排] arrangeList == null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        arrangeList = getWorkArrange(arrangeList);
-        return ResultVoUtil.success(getArrangeVoList(arrangeList));
+        List<Arrange> arrangeWorkList = getWorkArrange(arrangeList);
+        return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
     }
 
     @Override
@@ -253,8 +253,8 @@ public class ArrangeServiceImpl implements ArrangeService {
                 arrangeIdSet.add(o.getArrangeId())
         );
         List<Arrange> arrangeList = arrangeRepository.findAllById(arrangeIdSet);
-        arrangeList = getWorkArrange(arrangeList);
-        return ResultVoUtil.success(getArrangeVoList(arrangeList));
+        List<Arrange> arrangeWorkList = getWorkArrange(arrangeList);
+        return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
     }
 
     @Override
@@ -281,5 +281,16 @@ public class ArrangeServiceImpl implements ArrangeService {
         Arrange arrangeSave = arrangeRepository.save(arrange);
         log.info("[完成日程安排] 保存arrangeSave={}",arrangeSave);
         return ResultVoUtil.success();
+    }
+
+    @Override
+    public ResultVo getScheduleArrange(Date time, HttpServletRequest request) {
+        List<Arrange> arrangeList = arrangeRepository.findByAuthor(ShiroUtil.getUserId(request));
+        List<Arrange> arrangeScheduleList = getScheduleArrange(arrangeList);
+        Date now = new Date();
+        return ResultVoUtil.success(
+                arrangeScheduleList.stream().filter(o->now.getTime()-o.getCreateTime().getTime() <=24*3600000)
+                                            .collect(Collectors.toList()));
+
     }
 }

@@ -40,4 +40,7 @@ public interface ArrangeService {
     /*完成指定日程安排*/
     ResultVo finishScheduleArrange(String arrangeId, HttpServletRequest request);
 
+    /*获取指定时间的日程安排*/
+    ResultVo getScheduleArrange(Date time, HttpServletRequest request);
+
 }
