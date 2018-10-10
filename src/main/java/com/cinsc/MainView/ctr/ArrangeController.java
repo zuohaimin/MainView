@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Date;
 
 /**
  * @Author: 束手就擒
@@ -92,5 +93,24 @@ public class ArrangeController {
     public ResultVo getCCArrange(HttpServletRequest request){
         log.info("[获取抄送我的工作安排]");
         return arrangeService.getCCArrange(request);
+    }
+    @ApiOperation(value = "添加日程安排")
+    @RequestMapping(value = "/addScheduleArrange", method = RequestMethod.GET)
+    public ResultVo addScheduleArrange(@RequestParam(value = "deadLine",required = false)Date deadLine,
+                                       @RequestParam(value = "description",required = false)String description,
+                                       HttpServletRequest request){
+        log.info("[添加日程安排]");
+        Assert.isNull(deadLine,"deadLine不能为空|含有空格");
+        Assert.isBlank(description,"description不能为空|含有空格");
+        return arrangeService.addScheduleArrange(deadLine,description,request);
+    }
+
+    @ApiOperation(value = "完成日程安排")
+    @RequestMapping(value = "/finishScheduleArrange", method = RequestMethod.GET)
+    public ResultVo finishScheduleArrange(@RequestParam(value = "arrangeId",required = false)String arrangeId,
+                                       HttpServletRequest request){
+        log.info("[完成日程安排]");
+        Assert.isBlank(arrangeId,"arrangeId不能为空|含有空格");
+        return arrangeService.finishScheduleArrange(arrangeId,request);
     }
 }

@@ -4,6 +4,7 @@ import com.cinsc.MainView.dto.ArrangeDto;
 import com.cinsc.MainView.vo.ResultVo;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 
 /**
  * @Author: 束手就擒
@@ -32,5 +33,11 @@ public interface ArrangeService {
 
     /*获取抄送我的工作安排*/
     ResultVo getCCArrange(HttpServletRequest request);
+
+    /*新建日程安排*/
+    ResultVo addScheduleArrange(Date deadLine, String description, HttpServletRequest request);
+
+    /*完成指定日程安排*/
+    ResultVo finishScheduleArrange(String arrangeId, HttpServletRequest request);
 
 }

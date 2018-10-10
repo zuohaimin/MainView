@@ -15,4 +15,5 @@ import java.util.List;
 public interface ArrangeRepository extends JpaRepository<Arrange,String> {
 
     List<Arrange> findByAuthor(Integer author);
+    List<Arrange> findByStatus(Integer status);
 }

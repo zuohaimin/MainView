@@ -1,5 +1,6 @@
 package com.cinsc.MainView.model;
 
+import com.cinsc.MainView.enums.ArrangeStatusEnum;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -29,6 +30,9 @@ public class Arrange {
 
     /*完成人数*/
     private Integer finishNum = 0;
+
+    /*完成状态*/
+    private Integer status = ArrangeStatusEnum.WAIT.getCode();
 
     /*创建时间*/
     private Date createTime;

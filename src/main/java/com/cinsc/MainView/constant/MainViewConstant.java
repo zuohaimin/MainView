@@ -12,4 +12,6 @@ public class MainViewConstant {
 
     public static Integer DEFAULT_ROLE_ID = 4;
 
+    public static Integer DEFAULT_SCHEDULE_TOTALNUM = 0;
+
 }

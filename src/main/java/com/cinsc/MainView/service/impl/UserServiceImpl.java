@@ -1,9 +1,7 @@
 package com.cinsc.MainView.service.impl;
 
-import com.cinsc.MainView.annotation.convert.RoleIdToName;
 import com.cinsc.MainView.dto.UserDto;
 import com.cinsc.MainView.enums.ResultEnum;
-import com.cinsc.MainView.model.Role;
 import com.cinsc.MainView.model.UserLogin;
 import com.cinsc.MainView.model.UserRole;
 import com.cinsc.MainView.repository.RoleRepository;
@@ -11,17 +9,12 @@ import com.cinsc.MainView.repository.UserLoginRepository;
 import com.cinsc.MainView.repository.UserRoleRepository;
 import com.cinsc.MainView.service.UserService;
 
-import com.cinsc.MainView.utils.JPAUtil;
 import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
 import com.cinsc.MainView.vo.ResultVo;
-import com.cinsc.MainView.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -29,8 +22,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**

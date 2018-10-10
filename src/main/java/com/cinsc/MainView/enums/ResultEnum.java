@@ -33,7 +33,8 @@ public enum ResultEnum {
     TOKEN_ERRO(14,"token异常"),
     TOKEN_EXPIRE(15,"token过时"),
     DETAIL_NOT_FOUND(16,"用户详情为空"),
-    NOT_FOUND(17,"NOT FOUND");
+    NOT_FOUND(17,"NOT FOUND"),
+    ILLEGAL_OPERATION(18,"非法操作");
 
 
     private Integer code;
