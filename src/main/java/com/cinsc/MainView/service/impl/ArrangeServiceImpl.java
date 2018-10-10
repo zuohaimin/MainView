@@ -105,6 +105,7 @@ public class ArrangeServiceImpl implements ArrangeService {
     @Override
     @Transactional
     public ResultVo addArrange(ArrangeDto arrangeDto, HttpServletRequest request) {
+        log.info("[添加安排] arrangeDto={}",arrangeDto);
         Arrange arrange = new Arrange();
         String arrangeId = KeyUtil.genUniqueKey();
         arrange.setArrangeId(arrangeId);

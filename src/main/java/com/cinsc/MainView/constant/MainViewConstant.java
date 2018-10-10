@@ -10,4 +10,6 @@ public class MainViewConstant {
 
     public static String NOTICE_FRIEND_TITLE = "请求加好友";
 
+    public static Integer DEFAULT_ROLE_ID = 4;
+
 }

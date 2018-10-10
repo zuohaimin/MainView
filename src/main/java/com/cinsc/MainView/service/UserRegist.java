@@ -22,8 +22,8 @@ public interface UserRegist {
     /*检查验证码*/
     ResultVo checkSMS(String sms, String userAccount);
 
-    /*保存用户信息*/
-    ResultVo saveUserAccount(String password, String userAccount);
+//    /*保存用户信息*/
+//    ResultVo saveUserAccount(String password, String userAccount);
 
     /*更新用户信息*/
     ResultVo updateUserAccount(UserRegistDto userRegistDto);

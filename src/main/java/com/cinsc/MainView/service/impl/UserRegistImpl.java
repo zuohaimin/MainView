@@ -1,5 +1,6 @@
 package com.cinsc.MainView.service.impl;
 
+import com.cinsc.MainView.constant.MainViewConstant;
 import com.cinsc.MainView.dto.UserRegistDto;
 import com.cinsc.MainView.entity.MailEntity;
 import com.cinsc.MainView.enums.ForbiddenEnum;
@@ -8,8 +9,10 @@ import com.cinsc.MainView.exception.SystemException;
 import com.cinsc.MainView.jwt.JWTUtil;
 import com.cinsc.MainView.model.SMS;
 import com.cinsc.MainView.model.UserLogin;
+import com.cinsc.MainView.model.UserRole;
 import com.cinsc.MainView.repository.SMSRepository;
 import com.cinsc.MainView.repository.UserLoginRepository;
+import com.cinsc.MainView.repository.UserRoleRepository;
 import com.cinsc.MainView.service.UserRegist;
 import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
@@ -21,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.mail.MessagingException;
 
@@ -37,18 +41,40 @@ public class UserRegistImpl implements UserRegist{
     private UserLoginRepository userLoginRepository;
     private SMSRepository smsRepository;
     private MailEntity mailEntity;
+    private UserRoleRepository userRoleRepository;
 
     @Autowired
     public UserRegistImpl(UserLoginRepository userLoginRepository,
                           SMSRepository smsRepository,
-                          MailEntity mailEntity){
+                          MailEntity mailEntity,
+                          UserRoleRepository userRoleRepository){
         this.userLoginRepository = userLoginRepository;
         this.smsRepository = smsRepository;
         this.mailEntity = mailEntity;
+        this.userRoleRepository = userRoleRepository;
     }
 
     @Value("${secret}")
     private String secret;
+
+
+    /**
+     * 赋予用户角色
+     * @param userAccount
+     */
+    private ResultVo giveUserRole(String userAccount){
+        UserLogin userLogin = userLoginRepository.findByUserAccount(userAccount);
+        if (null == userLogin){
+            log.info("[注册] 查询用户 userLogin == null");
+            throw new SystemException(ResultEnum.UNkNOWN_ACCOUNT);
+        }
+        UserRole userRole = new UserRole();
+        userRole.setUserId(userLogin.getUserId());
+        userRole.setRoleId(MainViewConstant.DEFAULT_ROLE_ID);
+        UserRole userRoleSave = userRoleRepository.save(userRole);
+        log.info("[注册] 保存用户角色 userRoleSave = {}",userRoleSave);
+        return ResultVoUtil.success();
+    }
     /**
      * 验证用户是否存在
      * @param userAccount
@@ -144,22 +170,27 @@ public class UserRegistImpl implements UserRegist{
         return userLogin;
     }
 
-    /**
-     * 保存账户密码信息
-     * @param password
-     * @param userAccount
-     * @return
-     */
-    @Override
-    public ResultVo saveUserAccount(String password, String userAccount) {
+//    /**
+//     * 保存账户密码信息
+//     * @param password
+//     * @param userAccount
+//     * @return
+//     */
+//    @Override
+//    public ResultVo saveUserAccount(String password, String userAccount) {
+//        UserLogin userLogin = getUserLogin(password,userAccount);
+//        UserLogin userLoginSave = userLoginRepository.save(userLogin);
+//        log.info("保存用户账户信息 userLoginSave={}",userLoginSave);
+//
+//
+//        return ResultVoUtil.success();
+//    }
+
+    private void saveUserAccount(String password, String userAccount){
         UserLogin userLogin = getUserLogin(password,userAccount);
         UserLogin userLoginSave = userLoginRepository.save(userLogin);
         log.info("保存用户账户信息 userLoginSave={}",userLoginSave);
-
-
-        return ResultVoUtil.success();
     }
-
     /**
      * 更新密码
      * @param userRegistDto
@@ -178,11 +209,12 @@ public class UserRegistImpl implements UserRegist{
     }
 
     @Override
+    @Transactional
     public ResultVo regist(UserRegistDto userRegistDto) {
-        String sms = userRegistDto.getSms();
-        String userAccount = userRegistDto.getUserAccount();
-        checkSMS(sms,userAccount);
-        return  saveUserAccount(sms,userAccount);
+        checkSMS(userRegistDto.getSms(),userRegistDto.getUserAccount());
+        saveUserAccount(userRegistDto.getUserPwd(), userRegistDto.getUserAccount());
+
+        return  giveUserRole(userRegistDto.getUserAccount());
 
     }
 }

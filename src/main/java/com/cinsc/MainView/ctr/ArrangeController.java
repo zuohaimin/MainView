@@ -38,7 +38,7 @@ public class ArrangeController {
     @CheckPermission(perms = PermsEnum.TEACHER)
     @ApiOperation(value = "新建工作安排")
     @RequestMapping(value = "/addArrange", method = RequestMethod.POST)
-    public ResultVo addArrange(@Valid @RequestBody ArrangeDto arrangeDto,
+    public ResultVo addArrange(@Valid ArrangeDto arrangeDto,
                                BindingResult bindingResult,
                                HttpServletRequest request){
         if (bindingResult.hasErrors()){
@@ -49,6 +49,7 @@ public class ArrangeController {
         return arrangeService.addArrange(arrangeDto,request);
     }
 
+    @CheckPermission(perms = PermsEnum.TEACHER)
     @ApiOperation(value = "完成安排(按键 建议控制响应间隔)")
     @RequestMapping(value = "/finishArrange", method = RequestMethod.GET)
     public ResultVo finishArrange(@RequestParam(value = "arrangeId",required = false)String arrangeId,
