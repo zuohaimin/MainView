@@ -16,17 +16,6 @@ import java.util.List;
 @Data
 public class UserDto {
 
-    /**
-     * 主键id
-     */
-    private Integer id;
-
-    /**
-     * 姓名
-     */
-    @Length(max = 32,message = "长度不能超过32位")
-    @NotEmpty(message = "名称不能为空")
-    private String name;
 
     /**
      * 账号
@@ -53,6 +42,6 @@ public class UserDto {
     /**
      * 用户角色
      */
-    private Role sysRole;
+    private Integer roleId;
 
 }

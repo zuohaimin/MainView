@@ -51,7 +51,7 @@ public class ArrangeController {
     }
 
     @CheckPermission(perms = PermsEnum.TEACHER)
-    @ApiOperation(value = "完成安排(按键 建议控制响应间隔)")
+    @ApiOperation(value = "改变安排状态(完成/未完成)")
     @RequestMapping(value = "/finishArrange", method = RequestMethod.GET)
     public ResultVo finishArrange(@RequestParam(value = "arrangeId",required = false)String arrangeId,
                                   HttpServletRequest request){
@@ -121,5 +121,21 @@ public class ArrangeController {
         log.info("[获得日程安排]");
         Assert.isNull(time,"time不能为空|含有空格");
         return arrangeService.getScheduleArrange(time,request);
+    }
+
+    @ApiOperation(value = "删除工作安排")
+    @RequestMapping(value = "/deleteWorkArrange/{arrangeId}",method = RequestMethod.DELETE)
+    public ResultVo deleteWorkArrange(@PathVariable("arrangeId") String arrangeId,
+                                 HttpServletRequest request){
+        Assert.isNull(arrangeId,"arrangeId不能为空|不能含有空格");
+        return arrangeService.deleteWorkArrange(arrangeId,request);
+    }
+
+    @ApiOperation(value = "删除日程安排")
+    @RequestMapping(value = "/deleteScheduleArrange/{arrangeId}",method = RequestMethod.DELETE)
+    public ResultVo deleteScheduleArrange(@PathVariable("arrangeId") String arrangeId,
+                                      HttpServletRequest request){
+        Assert.isNull(arrangeId,"arrangeId不能为空|不能含有空格");
+        return arrangeService.deleteScheduleArrange(arrangeId,request);
     }
 }

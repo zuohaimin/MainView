@@ -12,6 +12,8 @@ import java.util.Date;
 @Data
 public class ArrangeVo {
 
+    private String arrangeId;
+
     private String userName;
 
     private String description;
@@ -23,5 +25,6 @@ public class ArrangeVo {
 
     /*完成人数*/
     private Integer finishNum;
+
 
 }

@@ -16,4 +16,5 @@ public interface ArrangeRepository extends JpaRepository<Arrange,String> {
 
     List<Arrange> findByAuthor(Integer author);
     List<Arrange> findByStatus(Integer status);
+    Arrange findByArrangeIdAndAuthor(String arrangeId, Integer author);
 }

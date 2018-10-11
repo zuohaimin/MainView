@@ -17,4 +17,5 @@ public interface TransactorRepository extends JpaRepository<Transactor,Integer>{
     List<Transactor> findByUserId(Integer userId);
     Transactor findByArrangeIdAndUserId(String arrangeId,Integer userId);
     List<Transactor> findByArrangeId(String arrangeId);
+    void deleteByArrangeId(String arrangId);
 }

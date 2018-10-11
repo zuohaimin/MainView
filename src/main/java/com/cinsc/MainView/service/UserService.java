@@ -14,15 +14,28 @@ import java.util.List;
  * @Description:
  */
 public interface UserService {
-    UserLogin findByAccount(String account);
 
-    ResultVo saveUser(UserDto sysUserFrom);
+    /*查找单个用户*/
+    ResultVo findByAccount(String account);
 
-    ResultVo selectUserDetail(Integer id);
+    /*查找所有*/
+    ResultVo findAll();
 
-    ResultVo updateUser(UserDto sysUserFrom);
+    ResultVo saveUser(UserDto userDto);
 
-    ResultVo deleteUser(Integer id);
+    /*配置用户角色关系*/
+    ResultVo configureUserRole(Integer roleId, HttpServletRequest request);
+
+//    /*查看详细信息*/
+//    ResultVo selectUserDetail(Integer userId);
+
+//    ResultVo updateUser(UserDto sysUserFrom);
+
+    /*禁用某个用户*/
+    ResultVo forbidUsers(List<Integer> userIdList);
+
+    /*删除某个用户*/
+    ResultVo deleteUser(Integer userId);
 
 
     Integer getRoleId(HttpServletRequest request);

@@ -11,6 +11,7 @@ import com.cinsc.MainView.repository.*;
 import com.cinsc.MainView.service.ArrangeService;
 import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
+import com.cinsc.MainView.utils.convert.MapTurnPojo;
 import com.cinsc.MainView.utils.key.KeyUtil;
 import com.cinsc.MainView.vo.ArrangeVo;
 import com.cinsc.MainView.vo.ResultVo;
@@ -19,10 +20,11 @@ import org.omg.CORBA.INTERNAL;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
+import javax.xml.transform.Result;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -85,13 +87,15 @@ public class ArrangeServiceImpl implements ArrangeService {
      */
     private List<ArrangeVo> getArrangeVoList(List<Arrange> arrangeList) {
         List<ArrangeVo> arrangeVoList = new ArrayList<>();
-        arrangeList.forEach(o -> {
-            ArrangeVo arrangeVo = new ArrangeVo();
-            BeanUtils.copyProperties(o,arrangeVo);
-            arrangeVo.setUserName(getUsername(o.getAuthor()));
-            arrangeVoList.add(arrangeVo);
-        });
+        arrangeList.forEach(o -> arrangeVoList.add(getArrangeVo(o)));
         return arrangeVoList;
+    }
+
+    private ArrangeVo getArrangeVo(Arrange arrange) {
+        ArrangeVo arrangeVo = new ArrangeVo();
+        BeanUtils.copyProperties(arrange,arrangeVo);
+        arrangeVo.setUserName(getUsername(arrange.getAuthor()));
+        return arrangeVo;
     }
 
 
@@ -188,6 +192,9 @@ public class ArrangeServiceImpl implements ArrangeService {
         if (count.equals(arrange.getTotalNum())){
             arrange.setStatus(ArrangeStatusEnum.FINISH.getCode());
             log.info("[完成工作安排] arrange={}已经完成",arrange);
+        }else{
+            arrange.setStatus(ArrangeStatusEnum.WAIT.getCode());
+            log.info("[完成工作安排] arrange={}未完成",arrange);
         }
         Arrange arrangeSave = arrangeRepository.save(arrange);
         log.info("完成安排 arrangeSave = {}",arrangeSave);
@@ -225,24 +232,41 @@ public class ArrangeServiceImpl implements ArrangeService {
         return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
     }
 
+    //2018.10.11 添加status
     @Override
     public ResultVo getDoneArrange(HttpServletRequest request) {
+//        List<Transactor> transactorList = transactorRepository.findByUserId(ShiroUtil.getUserId(request));
+//        if (null == transactorList){
+//            log.info("[获得我执行的安排] transactorList == null");
+//            throw new SystemException(ResultEnum.NOT_FOUND);
+//        }
+//        Set<String> arrangeIdSet = new HashSet<>();
+//        transactorList.forEach(o ->
+//                arrangeIdSet.add(o.getArrangeId())
+//        );
+//        List<Arrange> arrangeList = arrangeRepository.findAllById(arrangeIdSet);
+//        if (arrangeList.size() == 0){
+//            log.info("[获得我执行的安排] arrangeList == null");
+//            throw new SystemException(ResultEnum.NOT_FOUND);
+//        }
         List<Transactor> transactorList = transactorRepository.findByUserId(ShiroUtil.getUserId(request));
         if (null == transactorList){
-            log.info("[获得我执行的安排] transactorList == null");
-            throw new SystemException(ResultEnum.NOT_FOUND);
+              log.info("[获得我执行的安排] transactorList == null");
+              throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        Set<String> arrangeIdSet = new HashSet<>();
-        transactorList.forEach(o ->
-                arrangeIdSet.add(o.getArrangeId())
-        );
-        List<Arrange> arrangeList = arrangeRepository.findAllById(arrangeIdSet);
-        if (arrangeList.size() == 0){
-            log.info("[获得我执行的安排] arrangeList == null");
-            throw new SystemException(ResultEnum.NOT_FOUND);
-        }
-        List<Arrange> arrangeWorkList = getWorkArrange(arrangeList);
-        return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
+        List<Map<String,Object>> arrangeVoMapList = new ArrayList<>();
+        transactorList.forEach(o->{
+                ArrangeVo arrangeVo =getArrangeVo(arrangeRepository.findById(o.getArrangeId()).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND)));
+                /*查找我完成的情况*/
+                Map<String,Object> arrangeVoMap = MapTurnPojo.object2Map(arrangeVo);
+                arrangeVoMap.put("status",o.getStatus());
+                if (!MainViewConstant.DEFAULT_SCHEDULE_TOTALNUM.equals(arrangeVo.getTotalNum())){
+                    arrangeVoMapList.add(arrangeVoMap);
+                }
+        });
+        /*查找我完成的情况*/
+
+        return ResultVoUtil.success(arrangeVoMapList);
     }
 
     @Override
@@ -292,5 +316,25 @@ public class ArrangeServiceImpl implements ArrangeService {
                 arrangeScheduleList.stream().filter(o->now.getTime()-o.getCreateTime().getTime() <=24*3600000)
                                             .collect(Collectors.toList()));
 
+    }
+
+    @Override
+    @Transactional
+    public ResultVo deleteWorkArrange(String arrangeId, HttpServletRequest request) {
+        deleteScheduleArrange(arrangeId,request);
+        transactorRepository.deleteByArrangeId(arrangeId);
+        return ResultVoUtil.success();
+    }
+
+    @Override
+    @Transactional
+    public ResultVo deleteScheduleArrange(String arrangeId, HttpServletRequest request) {
+        Arrange arrange = arrangeRepository.findByArrangeIdAndAuthor(arrangeId,ShiroUtil.getUserId(request));
+        if (null == arrange){
+            log.info("[删除安排] 操作非法");
+            throw new SystemException(ResultEnum.ILLEGAL_OPERATION);
+        }
+        arrangeRepository.delete(arrange);
+        return ResultVoUtil.success();
     }
 }

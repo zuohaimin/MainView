@@ -43,4 +43,9 @@ public interface ArrangeService {
     /*获取指定时间的日程安排*/
     ResultVo getScheduleArrange(Date time, HttpServletRequest request);
 
+    /*删除指定的工作安排*/
+    ResultVo deleteWorkArrange(String arrangeId, HttpServletRequest request);
+
+    /*删除指定的日程安排*/
+    ResultVo deleteScheduleArrange(String arrangeId, HttpServletRequest request);
 }

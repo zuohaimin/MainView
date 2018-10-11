@@ -7,6 +7,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @Author: 束手就擒
  * @Date: 18-7-24 下午9:51
@@ -22,4 +24,5 @@ public interface UserLoginRepository extends JpaRepository<UserLogin,Integer>{
     UserLogin findByUserAccount(String account);
 
     Page<UserLogin> findAll(Specification<UserLogin> sysRoleSpecification, Pageable pageable);
+    List<UserLogin> findByUserIdIn(List<Integer> userIdList);
 }
