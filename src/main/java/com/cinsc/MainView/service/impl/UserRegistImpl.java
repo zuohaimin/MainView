@@ -35,7 +35,7 @@ import javax.mail.MessagingException;
  */
 @Service
 @Slf4j
-//TODO 检查账户是否禁用
+//2018.10.11 检查账户是否禁用
 public class UserRegistImpl implements UserRegist{
 
     private UserLoginRepository userLoginRepository;

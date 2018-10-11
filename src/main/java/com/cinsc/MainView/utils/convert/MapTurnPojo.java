@@ -3,9 +3,9 @@ package com.cinsc.MainView.utils.convert;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.crypto.hash.Hash;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,5 +34,27 @@ public class MapTurnPojo {
             }
         }
         return map;
+    }
+    public static Object map2Object(Map<String,Object> map, Class<?> clazz){
+        if (map == null){
+            return null;
+        }
+        Object obj = null;
+
+        try {
+            obj = clazz.newInstance();
+            Field[] fields = obj.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                int mod = field.getModifiers();
+                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)){
+                    continue;
+                }
+                field.setAccessible(true);
+                field.set(obj,map.get(field.getName()));
+            }
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return obj;
     }
 }
