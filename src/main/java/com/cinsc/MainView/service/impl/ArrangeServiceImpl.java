@@ -12,9 +12,12 @@ import com.cinsc.MainView.service.ArrangeService;
 import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
 import com.cinsc.MainView.utils.convert.MapTurnPojo;
+import com.cinsc.MainView.utils.convert.PictureToBase64;
 import com.cinsc.MainView.utils.key.KeyUtil;
 import com.cinsc.MainView.vo.ArrangeVo;
 import com.cinsc.MainView.vo.ResultVo;
+import com.cinsc.MainView.vo.UserMsgVo;
+import com.cinsc.MainView.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.omg.CORBA.INTERNAL;
 import org.springframework.beans.BeanUtils;
@@ -159,11 +162,12 @@ public class ArrangeServiceImpl implements ArrangeService {
     @Transactional
     //2018.10.10 解决同一个用户多次完成安排的bug
     public ResultVo finishArrange(String arrangeId, HttpServletRequest request) {
+        /*判断是否是非法操作*/
         /*执行表更新*/
         Transactor transactor = transactorRepository.findByArrangeIdAndUserId(arrangeId,ShiroUtil.getUserId(request));
         if (transactor == null){
-            log.info("[完成工作安排] 没有找到指定条件的执行表 transactor = null");
-            throw new SystemException(ResultEnum.DATA_ERROR);
+            log.info("[完成工作安排] 没有找到指定条件的执行表(非法操作) transactor = null");
+            throw new SystemException(ResultEnum.ILLEGAL_OPERATION);
         }
         /*找到指定安排*/
         Arrange arrange = arrangeRepository.findById(arrangeId).orElseThrow(()-> new SystemException(ResultEnum.DATA_ERROR));
@@ -336,5 +340,25 @@ public class ArrangeServiceImpl implements ArrangeService {
         }
         arrangeRepository.delete(arrange);
         return ResultVoUtil.success();
+    }
+
+    @Override
+    public ResultVo getArrangeTransactors(String arrangeId) {
+        List<Transactor> transactorList = transactorRepository.findByArrangeId(arrangeId);
+        if (null == transactorList){
+            log.info("得到安排的成员信息");
+            throw new SystemException(ResultEnum.NOT_FOUND);
+        }
+        List<UserMsgVo> userMsgVoList = new ArrayList<>();
+        List<Integer> userIdList = new ArrayList<>();
+        transactorList.forEach(o-> userIdList.add(o.getUserId()));
+        /*获得详细信息*/
+        userDetailRepository.findByUserIdIn(userIdList).forEach(o->{
+            UserMsgVo userMsgVo = new UserMsgVo();
+            BeanUtils.copyProperties(o,userMsgVo);
+            userMsgVo.setUserIcon(PictureToBase64.getImageStr(o.getUserIcon()));
+            userMsgVoList.add(userMsgVo);
+        });
+        return ResultVoUtil.success(userMsgVoList);
     }
 }

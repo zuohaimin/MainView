@@ -138,4 +138,12 @@ public class ArrangeController {
         Assert.isNull(arrangeId,"arrangeId不能为空|不能含有空格");
         return arrangeService.deleteScheduleArrange(arrangeId,request);
     }
+
+    @ApiOperation(value = "得到安排的成员信息")
+    @RequestMapping(value = "/getArrangeTransactors", method = RequestMethod.GET)
+    public ResultVo getArrangeTransactors(@RequestParam(value = "arrangeId",required = false)String arrangeId){
+        log.info("[得到安排的成员信息]");
+        Assert.isNull(arrangeId,"arrangeId不能为空|含有空格");
+        return arrangeService.getArrangeTransactors(arrangeId);
+    }
 }

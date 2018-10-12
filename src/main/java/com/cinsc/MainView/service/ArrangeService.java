@@ -48,4 +48,7 @@ public interface ArrangeService {
 
     /*删除指定的日程安排*/
     ResultVo deleteScheduleArrange(String arrangeId, HttpServletRequest request);
+
+    /*获得指定的安排的人员*/
+    ResultVo getArrangeTransactors(String arrangeId);
 }
