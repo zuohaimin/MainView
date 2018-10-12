@@ -88,6 +88,14 @@ public class ArrangeServiceImpl implements ArrangeService {
         return arrangeVoList;
     }
 
+    private Integer getUserStatus(List<Transactor> transactorList,Integer userId){
+        for (Transactor transactor : transactorList) {
+            if (transactor.getUserId().equals(userId)){
+                return transactor.getStatus();
+            }
+        }
+        throw new SystemException(ResultEnum.DATA_ERROR);
+    }
     private ArrangeVo getArrangeVo(Arrange arrange) {
         ArrangeVo arrangeVo = new ArrangeVo();
         BeanUtils.copyProperties(arrange,arrangeVo);
@@ -244,6 +252,7 @@ public class ArrangeServiceImpl implements ArrangeService {
 
     //2018.10.11 添加status
     //2018.10.12 status有序
+    //TODO N+1
     @Override
     public ResultVo getDoneArrange(HttpServletRequest request) {
 //        List<Transactor> transactorList = transactorRepository.findByUserId(ShiroUtil.getUserId(request));
@@ -359,16 +368,18 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("得到安排的成员信息");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        List<UserMsgVo> userMsgVoList = new ArrayList<>();
         List<Integer> userIdList = new ArrayList<>();
         transactorList.forEach(o-> userIdList.add(o.getUserId()));
+        List<Map<String,Object>> userMsgMapList = new ArrayList<>();
         /*获得详细信息*/
         userDetailRepository.findByUserIdIn(userIdList).forEach(o->{
-            UserMsgVo userMsgVo = new UserMsgVo();
-            BeanUtils.copyProperties(o,userMsgVo);
-            userMsgVo.setUserIcon(PictureToBase64.getImageStr(o.getUserIcon()));
-            userMsgVoList.add(userMsgVo);
+            Map<String,Object> userMsgMap = new HashMap<>();
+            userMsgMap.put("userName",o.getUserName());
+
+            userMsgMap.put("status",getUserStatus(transactorList,o.getUserId()));
+            userMsgMapList.add(userMsgMap);
+
         });
-        return ResultVoUtil.success(userMsgVoList);
+        return ResultVoUtil.success(userMsgMapList);
     }
 }
