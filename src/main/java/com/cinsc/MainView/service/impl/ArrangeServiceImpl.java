@@ -17,9 +17,7 @@ import com.cinsc.MainView.utils.key.KeyUtil;
 import com.cinsc.MainView.vo.ArrangeVo;
 import com.cinsc.MainView.vo.ResultVo;
 import com.cinsc.MainView.vo.UserMsgVo;
-import com.cinsc.MainView.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
-import org.omg.CORBA.INTERNAL;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.transform.Result;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,19 +38,16 @@ import java.util.stream.Collectors;
 public class ArrangeServiceImpl implements ArrangeService {
 
     private ArrangeRepository arrangeRepository;
-    private UserLoginRepository userLoginRepository;
     private UserDetailRepository userDetailRepository;
     private TransactorRepository transactorRepository;
     private CcRepository ccRepository;
 
     @Autowired
     public ArrangeServiceImpl(ArrangeRepository arrangeRepository,
-                              UserLoginRepository userLoginRepository,
                               UserDetailRepository userDetailRepository,
                               TransactorRepository transactorRepository,
                               CcRepository ccRepository) {
         this.arrangeRepository = arrangeRepository;
-        this.userLoginRepository = userLoginRepository;
         this.userDetailRepository = userDetailRepository;
         this.transactorRepository = transactorRepository;
         this.ccRepository = ccRepository;
@@ -101,6 +95,20 @@ public class ArrangeServiceImpl implements ArrangeService {
         return arrangeVo;
     }
 
+    private List<Transactor> mergeCollection(List<Transactor> transReadyList, List<Transactor> transFinishList){
+        List<Transactor> transactorList;
+        if (null == transReadyList & null == transFinishList){
+            log.info("[获得我执行的安排] transReadyList transFinishList == null");
+            throw new SystemException(ResultEnum.NOT_FOUND);
+        }
+        if (transReadyList != null){
+            transactorList = new ArrayList<>(transReadyList);
+            transactorList.addAll(transFinishList);
+            return transactorList;
+        }else{
+            return new ArrayList<>(transFinishList);
+        }
+    }
 
     private List<Arrange> getWorkArrange(List<Arrange> arrangeList){
         return  arrangeList.stream().filter(o->!MainViewConstant.DEFAULT_SCHEDULE_TOTALNUM.equals(o.getTotalNum())).collect(Collectors.toList());
@@ -109,15 +117,13 @@ public class ArrangeServiceImpl implements ArrangeService {
         return  arrangeList.stream().filter(o->MainViewConstant.DEFAULT_SCHEDULE_TOTALNUM.equals(o.getTotalNum())).collect(Collectors.toList());
     }
     private Set<Integer> removalRepeat(List<Integer> transactorIdList){
-        Set<Integer> transactorIdSet = new HashSet<>();
-        transactorIdList.forEach(o->
-            transactorIdSet.add(o) );
-        return transactorIdSet;
+        return new HashSet<>(transactorIdList);
+
     }
 
-    private Arrange getArrange(String arrangId, Date now, Date deadLine, String description, Integer totalNum, HttpServletRequest request){
+    private Arrange getArrange(String arrangeId, Date now, Date deadLine, String description, Integer totalNum, HttpServletRequest request){
         Arrange arrange = new Arrange();
-        arrange.setArrangeId(arrangId);
+        arrange.setArrangeId(arrangeId);
         arrange.setAuthor(ShiroUtil.getUserId(request));
         arrange.setCreateTime(now);
         arrange.setDeadLine(deadLine);
@@ -204,7 +210,7 @@ public class ArrangeServiceImpl implements ArrangeService {
         log.info("完成安排 arrangeSave = {}",arrangeSave);
 
 
-        return ResultVoUtil.success();
+        return ResultVoUtil.success(transactor.getStatus());
     }
 
     @Override
@@ -237,6 +243,7 @@ public class ArrangeServiceImpl implements ArrangeService {
     }
 
     //2018.10.11 添加status
+    //2018.10.12 status有序
     @Override
     public ResultVo getDoneArrange(HttpServletRequest request) {
 //        List<Transactor> transactorList = transactorRepository.findByUserId(ShiroUtil.getUserId(request));
@@ -253,11 +260,12 @@ public class ArrangeServiceImpl implements ArrangeService {
 //            log.info("[获得我执行的安排] arrangeList == null");
 //            throw new SystemException(ResultEnum.NOT_FOUND);
 //        }
-        List<Transactor> transactorList = transactorRepository.findByUserId(ShiroUtil.getUserId(request));
-        if (null == transactorList){
-              log.info("[获得我执行的安排] transactorList == null");
-              throw new SystemException(ResultEnum.NOT_FOUND);
-        }
+        Integer userId = ShiroUtil.getUserId(request);
+        List<Transactor> transReadyList = transactorRepository.findByUserIdAndStatus(userId,TransactorStatusEnum.READY.getCode());
+        List<Transactor> transFinishList = transactorRepository.findByUserIdAndStatus(userId,TransactorStatusEnum.FINISHED.getCode());
+
+        List<Transactor> transactorList = mergeCollection(transReadyList,transFinishList);
+
         List<Map<String,Object>> arrangeVoMapList = new ArrayList<>();
         transactorList.forEach(o->{
                 ArrangeVo arrangeVo =getArrangeVo(arrangeRepository.findById(o.getArrangeId()).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND)));
@@ -305,10 +313,12 @@ public class ArrangeServiceImpl implements ArrangeService {
         }
         if (ArrangeStatusEnum.WAIT.getCode().equals(arrange.getStatus())){
             arrange.setStatus(ArrangeStatusEnum.FINISH.getCode());
+        }else{
+            arrange.setStatus(ArrangeStatusEnum.WAIT.getCode());
         }
         Arrange arrangeSave = arrangeRepository.save(arrange);
         log.info("[完成日程安排] 保存arrangeSave={}",arrangeSave);
-        return ResultVoUtil.success();
+        return ResultVoUtil.success(arrangeSave.getStatus());
     }
 
     @Override

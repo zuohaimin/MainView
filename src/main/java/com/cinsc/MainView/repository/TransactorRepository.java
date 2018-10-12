@@ -15,6 +15,7 @@ import java.util.List;
 @Repository
 public interface TransactorRepository extends JpaRepository<Transactor,Integer>{
     List<Transactor> findByUserId(Integer userId);
+    List<Transactor> findByUserIdAndStatus(Integer userId, Integer status);
     Transactor findByArrangeIdAndUserId(String arrangeId,Integer userId);
     List<Transactor> findByArrangeId(String arrangeId);
     void deleteByArrangeId(String arrangId);
