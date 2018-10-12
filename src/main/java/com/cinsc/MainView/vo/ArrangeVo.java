@@ -1,5 +1,6 @@
 package com.cinsc.MainView.vo;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.Date;
  * @Description:
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArrangeVo {
 
     private String arrangeId;

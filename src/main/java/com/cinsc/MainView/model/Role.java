@@ -1,5 +1,6 @@
 package com.cinsc.MainView.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -15,6 +16,7 @@ import javax.persistence.Id;
 @Entity
 @Data
 @DynamicUpdate
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Role {
     /**
      * 主键id

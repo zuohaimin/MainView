@@ -16,7 +16,7 @@ import java.util.List;
 public interface UserService {
 
     /*查找单个用户*/
-    ResultVo findByAccount(String account);
+    ResultVo findByUserName(String userName);
 
     /*查找所有*/
     ResultVo findAll();
@@ -26,11 +26,6 @@ public interface UserService {
     /*配置用户角色关系*/
     ResultVo configureUserRole(Integer roleId, HttpServletRequest request);
 
-//    /*查看详细信息*/
-//    ResultVo selectUserDetail(Integer userId);
-
-//    ResultVo updateUser(UserDto sysUserFrom);
-
     /*禁用某个用户*/
     ResultVo forbidUsers(List<Integer> userIdList);
 
@@ -39,5 +34,11 @@ public interface UserService {
 
 
     Integer getRoleId(HttpServletRequest request);
+
+    /*获得某用户的权限*/
+    ResultVo getUserRole(HttpServletRequest request);
+
+    /*获得权限表*/
+    ResultVo getRoleList();
 
 }

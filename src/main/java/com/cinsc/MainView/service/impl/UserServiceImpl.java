@@ -4,6 +4,7 @@ import com.cinsc.MainView.dto.UserDto;
 import com.cinsc.MainView.enums.ForbiddenEnum;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
+import com.cinsc.MainView.model.Role;
 import com.cinsc.MainView.model.UserDetail;
 import com.cinsc.MainView.model.UserLogin;
 import com.cinsc.MainView.model.UserRole;
@@ -17,9 +18,7 @@ import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
 import com.cinsc.MainView.utils.convert.PictureToBase64;
 import com.cinsc.MainView.vo.ResultVo;
-import com.cinsc.MainView.vo.UserDetailVo;
 import com.cinsc.MainView.vo.UserMsgVo;
-import com.cinsc.MainView.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,41 +48,41 @@ public class UserServiceImpl implements UserService {
 
     private UserDetailRepository userDetailRepository;
 
+    private RoleRepository roleRepository;
+
 
     @Autowired
     public UserServiceImpl(UserLoginRepository userLoginRepository,
                            UserRoleRepository userRoleRepository,
-                           UserDetailRepository userDetailRepository){
+                           UserDetailRepository userDetailRepository,
+                           RoleRepository roleRepository){
        this.userLoginRepository = userLoginRepository;
        this.userRoleRepository = userRoleRepository;
        this.userDetailRepository = userDetailRepository;
+       this.roleRepository = roleRepository;
     }
 
 
-    /**
-     * 查找用户, 获得用户userId
-     * @param account
-     * @return
-     */
+    private UserMsgVo getUserMsgVo(UserDetail userDetail){
+        UserMsgVo userMsgVo = new UserMsgVo();
+        BeanUtils.copyProperties(userDetail,userMsgVo);
+        userMsgVo.setUserIcon(PictureToBase64.getImageStr(userDetail.getUserIcon()));
+        return userMsgVo;
+    }
     @Override
-    public ResultVo findByAccount(String account) {
-        UserLogin userLogin = userLoginRepository.findByUserAccount(account);
-        if (null == userLogin){
-            log.info("管理员页面 [查找单个用户] userLogin == null");
+    public ResultVo findByUserName(String userName) {
+        UserDetail userDetail = userDetailRepository.findByUserName(userName);
+        if (null == userDetail){
+            log.info("[查询单个用户] userDetail = null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        return ResultVoUtil.success(userLogin.getUserId());
+        return ResultVoUtil.success(getUserMsgVo(userDetail));
     }
 
     @Override
     public ResultVo findAll() {
         List<UserMsgVo> userMsgVoList = new ArrayList<>();
-        userDetailRepository.findAll().forEach(o->{
-            UserMsgVo userMsgVo = new UserMsgVo();
-            BeanUtils.copyProperties(o,userMsgVo);
-            userMsgVo.setUserIcon(PictureToBase64.getImageStr(o.getUserIcon()));
-            userMsgVoList.add(userMsgVo);
-        });
+        userDetailRepository.findAll().forEach(o-> userMsgVoList.add(getUserMsgVo(o)));
         return ResultVoUtil.success(userMsgVoList);
     }
 
@@ -158,5 +157,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public Integer getRoleId(HttpServletRequest request) {
         return userRoleRepository.findByUserId(ShiroUtil.getUserId(request)).getRoleId();
+    }
+
+    @Override
+    public ResultVo getUserRole(HttpServletRequest request) {
+        UserRole userRole = userRoleRepository.findByUserId(ShiroUtil.getUserId(request));
+        if (null == userRole){
+            log.info("[获得用户权限] userRole == null");
+            throw new SystemException(ResultEnum.NOT_FOUND);
+        }
+        return ResultVoUtil.success(userRole.getRoleId());
+    }
+
+    @Override
+    public ResultVo getRoleList() {
+        return ResultVoUtil.success(roleRepository.findAll());
     }
 }

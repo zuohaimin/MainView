@@ -51,7 +51,7 @@ public class ArrangeController {
     }
 
     @CheckPermission(perms = PermsEnum.TEACHER)
-    @ApiOperation(value = "改变安排状态(1完成/0未完成)返回更改后自己的完成状态")
+    @ApiOperation(value = "改变安排状态(1完成/0未完成)")
     @RequestMapping(value = "/finishArrange", method = RequestMethod.GET)
     public ResultVo finishArrange(@RequestParam(value = "arrangeId",required = false)String arrangeId,
                                   HttpServletRequest request){
@@ -105,7 +105,7 @@ public class ArrangeController {
         return arrangeService.addScheduleArrange(deadLine,description,request);
     }
 
-    @ApiOperation(value = "改变日程安排状态(返回更改后的状态)")
+    @ApiOperation(value = "改变日程安排状态()")
     @RequestMapping(value = "/finishScheduleArrange", method = RequestMethod.GET)
     public ResultVo finishScheduleArrange(@RequestParam(value = "arrangeId",required = false)String arrangeId,
                                        HttpServletRequest request){

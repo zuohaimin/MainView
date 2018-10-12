@@ -1,5 +1,6 @@
 package com.cinsc.MainView.vo;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 /**
@@ -8,6 +9,7 @@ import lombok.Data;
  * @Description:
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NoticeVo {
     private String id;
 

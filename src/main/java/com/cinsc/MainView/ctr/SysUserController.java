@@ -62,10 +62,10 @@ public class SysUserController
 
     @ApiOperation(value = "查找单个用户")
     @CheckPermission(perms = PermsEnum.MANAGER)
-    @GetMapping("/findByAccount")
-    public ResultVo findByAccount(@RequestParam(value = "account",required = false)String account){
-        Assert.isBlank(account,"account不能为空|含有空格");
-        return sysUserService.findByAccount(account);
+    @GetMapping("/findByUserName")
+    public ResultVo findByUserName(@RequestParam(value = "userName",required = false)String userName){
+        Assert.isBlank(userName,"userName不能为空|含有空格");
+        return sysUserService.findByUserName(userName);
     }
 
     @ApiOperation(value = "查找所有用户基本信息")
@@ -101,6 +101,19 @@ public class SysUserController
     @GetMapping("/deleteUser/{id}")
     public ResultVo deleteUser(@PathVariable Integer id){
         return sysUserService.deleteUser(id);
+    }
+
+    @ApiOperation(value = "获得某用户的权限")
+    @GetMapping("/getUserRole")
+    public ResultVo getUserRole(HttpServletRequest request){
+        return sysUserService.getUserRole(request);
+    }
+
+    @ApiOperation(value = "获得权限表")
+    @GetMapping("/getRoleList")
+    @CheckPermission(perms = PermsEnum.MANAGER)
+    public ResultVo getRoleList(){
+        return sysUserService.getRoleList();
     }
 
 

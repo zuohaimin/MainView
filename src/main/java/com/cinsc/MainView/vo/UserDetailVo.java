@@ -4,6 +4,7 @@ import com.cinsc.MainView.enums.GenderEnum;
 import com.cinsc.MainView.enums.MsgStatusEnum;
 import com.cinsc.MainView.enums.RoleEnum;
 import com.cinsc.MainView.utils.key.KeyUtil;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import javax.persistence.Id;
@@ -14,6 +15,7 @@ import javax.persistence.Id;
  * @Description:
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDetailVo {
 
     /*姓名*/

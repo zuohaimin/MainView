@@ -210,7 +210,7 @@ public class ArrangeServiceImpl implements ArrangeService {
         log.info("完成安排 arrangeSave = {}",arrangeSave);
 
 
-        return ResultVoUtil.success(transactor.getStatus());
+        return ResultVoUtil.success();
     }
 
     @Override
@@ -318,7 +318,7 @@ public class ArrangeServiceImpl implements ArrangeService {
         }
         Arrange arrangeSave = arrangeRepository.save(arrange);
         log.info("[完成日程安排] 保存arrangeSave={}",arrangeSave);
-        return ResultVoUtil.success(arrangeSave.getStatus());
+        return ResultVoUtil.success();
     }
 
     @Override
