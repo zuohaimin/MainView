@@ -24,14 +24,13 @@ public interface UserService {
     ResultVo saveUser(UserDto userDto);
 
     /*配置用户角色关系*/
-    ResultVo configureUserRole(Integer roleId, HttpServletRequest request);
+    ResultVo configureUserRole(Integer roleId, Integer userId);
 
     /*禁用某个用户*/
-    ResultVo forbidUsers(List<Integer> userIdList);
+    ResultVo forbidUsers(Integer userId);
 
     /*删除某个用户*/
     ResultVo deleteUser(Integer userId);
-
 
     Integer getRoleId(HttpServletRequest request);
 

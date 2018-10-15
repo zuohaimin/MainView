@@ -78,18 +78,19 @@ public class SysUserController
     @ApiOperation(value = "禁用用户(数组)")
     @CheckPermission(perms = PermsEnum.MANAGER)
     @GetMapping("/forbidUsers")
-    public ResultVo forbidUsers(@RequestParam(value = "userIdList",required = false)List<Integer> userIdList){
-        Assert.isNull(userIdList,"userIdList不能为空");
-        return sysUserService.forbidUsers(userIdList);
+    public ResultVo forbidUsers(@RequestParam(value = "userId",required = false)Integer userId){
+        Assert.isNull(userId,"userId不能为空");
+        return sysUserService.forbidUsers(userId);
     }
 
     @ApiOperation(value = "配置用户角色关系")
     @CheckPermission(perms = PermsEnum.MANAGER)
     @GetMapping("/configureUserRole")
     public ResultVo configureUserRole(@RequestParam(value = "roleId",required = false)Integer roleId,
-                                      HttpServletRequest request){
+                                      @RequestParam(value = "userId",required = false)Integer userId){
         Assert.isNull(roleId,"roleId不能为空");
-        return sysUserService.configureUserRole(roleId,request);
+        Assert.isNull(userId,"userId不能为空");
+        return sysUserService.configureUserRole(roleId,userId);
     }
     /**
      * 删除用户
@@ -98,7 +99,7 @@ public class SysUserController
      */
     @ApiOperation(value = "删除用户")
     @CheckPermission(perms = PermsEnum.MANAGER)
-    @GetMapping("/deleteUser/{id}")
+    @DeleteMapping("/deleteUser/{id}")
     public ResultVo deleteUser(@PathVariable Integer id){
         return sysUserService.deleteUser(id);
     }

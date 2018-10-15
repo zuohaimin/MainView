@@ -4,7 +4,6 @@ import com.cinsc.MainView.dto.UserDto;
 import com.cinsc.MainView.enums.ForbiddenEnum;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
-import com.cinsc.MainView.model.Role;
 import com.cinsc.MainView.model.UserDetail;
 import com.cinsc.MainView.model.UserLogin;
 import com.cinsc.MainView.model.UserRole;
@@ -16,18 +15,12 @@ import com.cinsc.MainView.service.UserService;
 
 import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
-import com.cinsc.MainView.utils.convert.PictureToBase64;
 import com.cinsc.MainView.vo.ResultVo;
-import com.cinsc.MainView.vo.UserMsgVo;
+import com.cinsc.MainView.vo.UserManagerVo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,11 +56,29 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    private UserMsgVo getUserMsgVo(UserDetail userDetail){
-        UserMsgVo userMsgVo = new UserMsgVo();
-        BeanUtils.copyProperties(userDetail,userMsgVo);
-        userMsgVo.setUserIcon(PictureToBase64.getImageStr(userDetail.getUserIcon()));
-        return userMsgVo;
+    private UserManagerVo getUserManagerVo(Integer userId){
+        UserManagerVo userManagerVo = userRoleRepository.getUserManagerVo(userId);
+        if (null == userManagerVo){
+            log.info("[获得UserManagerVo] userManagerVo == null");
+            throw new SystemException(ResultEnum.NOT_FOUND);
+        }
+        return userManagerVo;
+
+//        userManagerVo.setUserId(userId);
+//        UserDetail userDetail = userDetailRepository.findByUserId(userId);
+//        if (null == userDetail){
+//            log.info("[装配UserManagerVo] userDetail == null");
+//            throw new SystemException(ResultEnum.NOT_FOUND);
+//        }
+//        userManagerVo.setUserName(userDetail.getUserName());
+//        userManagerVo.setForbidCode(userLoginRepository.findById(userId).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND)).getUserForbidden());
+//        UserRole userRole = userRoleRepository.findByUserId(userId);
+//        if (null == userRole){
+//            log.info("[装配UserManagerVo] userRole == null");
+//            throw new SystemException(ResultEnum.NOT_FOUND);
+//        }
+//        userManagerVo.setName(roleRepository.findById(userRole.getRoleId()).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND)).getName());
+
     }
     @Override
     public ResultVo findByUserName(String userName) {
@@ -76,14 +87,14 @@ public class UserServiceImpl implements UserService {
             log.info("[查询单个用户] userDetail = null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        return ResultVoUtil.success(getUserMsgVo(userDetail));
+        return ResultVoUtil.success(getUserManagerVo(userDetail.getUserId()));
     }
 
     @Override
     public ResultVo findAll() {
-        List<UserMsgVo> userMsgVoList = new ArrayList<>();
-        userDetailRepository.findAll().forEach(o-> userMsgVoList.add(getUserMsgVo(o)));
-        return ResultVoUtil.success(userMsgVoList);
+        List<UserManagerVo> userManagerVoList = new ArrayList<>();
+        userLoginRepository.findAll().forEach(o-> userManagerVoList.add(getUserManagerVo(o.getUserId())));
+        return ResultVoUtil.success(userManagerVoList);
     }
 
     @Override
@@ -113,8 +124,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultVo configureUserRole(Integer roleId, HttpServletRequest request) {
-        UserRole userRole = userRoleRepository.findByUserId(ShiroUtil.getUserId(request));
+    public ResultVo configureUserRole(Integer roleId, Integer userId) {
+        UserRole userRole = userRoleRepository.findByUserId(userId);
         if (null == userRole){
             log.info("[配置用户角色关系] 该用户不存在角色");
             throw new SystemException(ResultEnum.NOT_FOUND);
@@ -128,15 +139,20 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ResultVo forbidUsers(List<Integer> userIdList) {
-        List<UserLogin> userLoginList = userLoginRepository.findByUserIdIn(userIdList);
-        if (null == userLoginList){
+    public ResultVo forbidUsers(Integer userId) {
+        UserLogin userLogin = userLoginRepository.findById(userId).orElseThrow(()-> {
             log.info("管理员页面 [禁用用户] userLoginList == null");
-            throw new SystemException(ResultEnum.NOT_FOUND);
+            return new SystemException(ResultEnum.NOT_FOUND);
+
+        });
+
+        if (userLogin.getUserForbidden().equals(ForbiddenEnum.DISABLE.getCode())){
+            userLogin.setUserForbidden(ForbiddenEnum.ENABLE.getCode());
+        }else{
+            userLogin.setUserForbidden(ForbiddenEnum.DISABLE.getCode());
         }
-        userLoginList.forEach(o->o.setUserForbidden(ForbiddenEnum.DISABLE.getCode()));
-        List<UserLogin> userLoginListSave = userLoginRepository.saveAll(userLoginList);
-        log.info("管理员页面 [禁用用户] userLoginListSave = {}",userLoginListSave);
+        UserLogin userLoginSave = userLoginRepository.save(userLogin);
+        log.info("管理员页面 [禁用用户] userLoginListSave = {}",userLoginSave);
         return ResultVoUtil.success();
     }
 
