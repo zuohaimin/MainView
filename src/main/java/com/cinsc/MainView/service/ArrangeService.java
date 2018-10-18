@@ -35,13 +35,13 @@ public interface ArrangeService {
     ResultVo getCCArrange(HttpServletRequest request);
 
     /*新建日程安排*/
-    ResultVo addScheduleArrange(Date deadLine, String description, HttpServletRequest request);
+    ResultVo addScheduleArrange(Date createTime,Date deadLine, String description, HttpServletRequest request);
 
     /*完成指定日程安排*/
     ResultVo finishScheduleArrange(String arrangeId, HttpServletRequest request);
 
     /*获取指定时间的日程安排*/
-    ResultVo getScheduleArrange(Date time, HttpServletRequest request);
+    ResultVo getScheduleArrange(long time, HttpServletRequest request);
 
     /*删除指定的工作安排*/
     ResultVo deleteWorkArrange(String arrangeId, HttpServletRequest request);

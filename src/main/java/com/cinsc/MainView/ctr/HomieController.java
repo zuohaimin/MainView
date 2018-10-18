@@ -116,24 +116,13 @@ public class HomieController {
      * @param id
      * @return
      */
-    @ApiOperation(value = "设置消息为已读")
+    @ApiOperation(value = "改变消息状态")
     @RequestMapping(value = "/readMessage",method = RequestMethod.GET)
     public ResultVo readMessage(@RequestParam(value = "id",required = false) String id){
         Assert.isBlank(id,"id不能为空|不能含有空格");
         return homieService.readMessage(id);
     }
 
-    /**
-     * 设置消息为未读
-     * @param id
-     * @return
-     */
-    @ApiOperation(value = "设置消息为未读")
-    @RequestMapping(value = "/unreadMessage",method = RequestMethod.GET)
-    public ResultVo unreadMessage(@RequestParam(value = "id",required = false) String id){
-        Assert.isBlank(id,"id不能为空|不能含有空格");
-        return homieService.unreadMessage(id);
-    }
 
     @ApiOperation(value = "删除好友")
     @RequestMapping(value = "/deleteFriend/{userId}",method = RequestMethod.DELETE)
@@ -144,15 +133,12 @@ public class HomieController {
         return homieService.deleteFriend(userId, request);
     }
 
-    /**
-     * 获取发给自己的消息
-     * @param request
-     * @return
-     */
-    @ApiOperation(value = "获取发给自己的消息")
-    @RequestMapping(value = "/getOwnerMessage",method = RequestMethod.GET)
-    public ResultVo getOwnerMessage(HttpServletRequest request){
-        return homieService.getOwnerMessage(request);
+    @ApiOperation(value = "删除消息")
+    @RequestMapping(value = "/deleteMessage/{id}",method = RequestMethod.DELETE)
+    public ResultVo deleteMessage(@PathVariable("id")String id,
+                                 HttpServletRequest request){
+        Assert.isNull(id,"id不能为空|不能含有空格");
+        return homieService.deleteMessage(id, request);
     }
 
     /**
@@ -166,6 +152,17 @@ public class HomieController {
         return homieService.getUnreadMessage(request);
     }
 
+    @ApiOperation(value = "获得好友验证消息")
+    @RequestMapping(value = "/getCheckMessage",method = RequestMethod.GET)
+    public ResultVo getCheckMessage(HttpServletRequest request) {
+        return homieService.getCheckMessage(request);
+    }
+
+    @ApiOperation(value = "判断是否有未读消息")
+    @RequestMapping(value = "/isUnreadMessage",method = RequestMethod.GET)
+    public ResultVo isUnreadMessage(HttpServletRequest request) {
+        return homieService.isUnreadMessage(request);
+    }
     /**
      * 获取发给自己已读的消息
      * @param request

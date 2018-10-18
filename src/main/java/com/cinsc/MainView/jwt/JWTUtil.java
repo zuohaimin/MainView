@@ -8,10 +8,12 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
+@Slf4j
 public class JWTUtil {
 
     // 过期时间5分钟
@@ -34,10 +36,12 @@ public class JWTUtil {
             DecodedJWT jwt = verifier.verify(token);
             return true;
         }catch(TokenExpiredException e){
-            throw new SystemException(ResultEnum.TOKEN_EXPIRE);
+            log.warn("[校验token是否正确] token过时");
+//            throw new SystemException(ResultEnum.TOKEN_EXPIRE);
+            return false;
 
-        } catch (Exception exception) {
-            exception.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            log.warn("[校验token是否正确] token解码异常");
             return false;
         }
     }

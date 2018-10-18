@@ -96,13 +96,15 @@ public class ArrangeController {
     }
     @ApiOperation(value = "添加日程安排")
     @RequestMapping(value = "/addScheduleArrange", method = RequestMethod.GET)
-    public ResultVo addScheduleArrange(@RequestParam(value = "deadLine",required = false)Date deadLine,
+    public ResultVo addScheduleArrange(@RequestParam(value = "createTime",required = false)Date createTime,
+                                       @RequestParam(value = "deadLine",required = false)Date deadLine,
                                        @RequestParam(value = "description",required = false)String description,
                                        HttpServletRequest request){
         log.info("[添加日程安排]");
         Assert.isNull(deadLine,"deadLine不能为空|含有空格");
+        Assert.isNull(createTime,"createTime不能为空|含有空格");
         Assert.isBlank(description,"description不能为空|含有空格");
-        return arrangeService.addScheduleArrange(deadLine,description,request);
+        return arrangeService.addScheduleArrange(createTime,deadLine,description,request);
     }
 
     @ApiOperation(value = "改变日程安排状态()")
@@ -114,9 +116,9 @@ public class ArrangeController {
         return arrangeService.finishScheduleArrange(arrangeId,request);
     }
 
-    @ApiOperation(value = "获得日程安排")
+    @ApiOperation(value = "获得日程安排(更改参数为时间戳)")
     @RequestMapping(value = "/getScheduleArrange", method = RequestMethod.GET)
-    public ResultVo getScheduleArrange(@RequestParam(value = "time",required = false)Date time,
+    public ResultVo getScheduleArrange(@RequestParam(value = "time",required = false)long time,
                                           HttpServletRequest request){
         log.info("[获得日程安排]");
         Assert.isNull(time,"time不能为空|含有空格");

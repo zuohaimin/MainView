@@ -14,6 +14,7 @@ import com.cinsc.MainView.utils.ShiroUtil;
 import com.cinsc.MainView.utils.convert.MapTurnPojo;
 import com.cinsc.MainView.utils.convert.PictureToBase64;
 import com.cinsc.MainView.utils.key.KeyUtil;
+import com.cinsc.MainView.vo.ArrangeScheduleVo;
 import com.cinsc.MainView.vo.ArrangeVo;
 import com.cinsc.MainView.vo.ResultVo;
 import com.cinsc.MainView.vo.UserMsgVo;
@@ -99,6 +100,8 @@ public class ArrangeServiceImpl implements ArrangeService {
     private ArrangeVo getArrangeVo(Arrange arrange) {
         ArrangeVo arrangeVo = new ArrangeVo();
         BeanUtils.copyProperties(arrange,arrangeVo);
+        arrangeVo.setCreateTime(arrange.getCreateTime().getTime());
+        arrangeVo.setDeadLine(arrange.getDeadLine().getTime());
         arrangeVo.setUserName(getUsername(arrange.getAuthor()));
         return arrangeVo;
     }
@@ -303,10 +306,9 @@ public class ArrangeServiceImpl implements ArrangeService {
     }
 
     @Override
-    public ResultVo addScheduleArrange(Date deadLine, String description, HttpServletRequest request) {
+    public ResultVo addScheduleArrange(Date createTime, Date deadLine, String description, HttpServletRequest request) {
 
-        Date now = new Date();
-        Arrange arrange = getArrange(KeyUtil.genUniqueKey(),now,deadLine,description, MainViewConstant.DEFAULT_SCHEDULE_TOTALNUM,request);
+        Arrange arrange = getArrange(KeyUtil.genUniqueKey(),createTime,deadLine,description, MainViewConstant.DEFAULT_SCHEDULE_TOTALNUM,request);
         Arrange arrangeSave = arrangeRepository.save(arrange);
         log.info("[添加日程安排] arrangeSave = {}",arrangeSave);
         return ResultVoUtil.success();
@@ -331,13 +333,24 @@ public class ArrangeServiceImpl implements ArrangeService {
     }
 
     @Override
-    public ResultVo getScheduleArrange(Date time, HttpServletRequest request) {
+    public ResultVo getScheduleArrange(long time, HttpServletRequest request) {
         List<Arrange> arrangeList = arrangeRepository.findByAuthor(ShiroUtil.getUserId(request));
         List<Arrange> arrangeScheduleList = getScheduleArrange(arrangeList);
+        if (null == arrangeScheduleList){
+            log.info("[获得日程安排] arrangeScheduleList == null");
+            throw new SystemException(ResultEnum.NOT_FOUND);
+        }
         Date now = new Date();
-        return ResultVoUtil.success(
-                arrangeScheduleList.stream().filter(o->now.getTime()-o.getCreateTime().getTime() <=24*3600000)
-                                            .collect(Collectors.toList()));
+        List<ArrangeScheduleVo> arrangeScheduleVoList = new ArrayList<>();
+        arrangeScheduleList.stream().filter(o->now.getTime()-o.getCreateTime().getTime() <=24*3600000)
+                                    .forEach(o->{
+                                        ArrangeScheduleVo arrangeScheduleVo = new ArrangeScheduleVo();
+                                        BeanUtils.copyProperties(o,arrangeScheduleVo);
+                                        arrangeScheduleVo.setCreateTime(o.getCreateTime().getTime());
+                                        arrangeScheduleVo.setDeadLine(o.getDeadLine().getTime());
+                                        arrangeScheduleVoList.add(arrangeScheduleVo);
+                                    });
+        return ResultVoUtil.success(arrangeScheduleVoList);
 
     }
 

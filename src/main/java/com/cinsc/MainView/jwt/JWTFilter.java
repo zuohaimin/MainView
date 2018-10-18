@@ -14,6 +14,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 public class JWTFilter extends BasicHttpAuthenticationFilter {
 
@@ -38,7 +39,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
      *TODO 抛出更加详细的异常
      */
     @Override
-    protected boolean executeLogin(ServletRequest request, ServletResponse response)throws Exception{
+    protected boolean executeLogin(ServletRequest request, ServletResponse response){
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         String authorization = httpServletRequest.getHeader("Authorization");
         String userAccount = JWTUtil.getUserAccount(authorization);
@@ -59,16 +60,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
     @Override
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
         if (isLoginAttempt(request, response)) {
-//            if (executeLogin(request, response)){
-//                return true;
-//            }else{
-//                throw new SystemException(ResultEnum.TOKEN_ERRO);
-//            }
-            try {
                 return executeLogin(request, response);
-            } catch (Exception e) {
-                throw new SystemException(ResultEnum.TOKEN_ERRO);
-            }
         }
         return false;
     }

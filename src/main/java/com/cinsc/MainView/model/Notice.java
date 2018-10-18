@@ -5,10 +5,9 @@ import com.cinsc.MainView.enums.NoticeEnum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @Author: 束手就擒
@@ -17,7 +16,7 @@ import javax.persistence.Id;
  */
 @Data
 @Entity
-public class Notice {
+public class Notice implements Serializable{
 
     @Id
     private String id;
@@ -37,5 +36,8 @@ public class Notice {
 
     /*标题*/
     private String title = MainViewConstant.NOTICE_DEFAULT_TITLE;
+
+    /*创建时间*/
+    private Date createTime = new Date();
 
 }

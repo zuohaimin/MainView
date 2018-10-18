@@ -22,11 +22,11 @@ public interface HomieService {
     /*好友验证信息确认*/
     ResultVo confirmCheckMessage(String id, String friendAccount,HttpServletRequest request);
 
-    /*置消息已读*/
+    /*改变消息状态*/
     ResultVo readMessage(String id);
 
-    /*置消息未读*/
-    ResultVo unreadMessage(String id);
+    /*删除消息*/
+    ResultVo deleteMessage(String id, HttpServletRequest request);
 
     /*删除好友*/
     ResultVo deleteFriend(Integer userId, HttpServletRequest request);
@@ -34,8 +34,8 @@ public interface HomieService {
     /*发送消息*/
     ResultVo sendMessage(Integer userId, String content, HttpServletRequest request);
 
-    /*得到消息*/
-    ResultVo getOwnerMessage(HttpServletRequest request);
+    /*获得好友验证消息*/
+    ResultVo getCheckMessage(HttpServletRequest request);
 
     /*得到自己未读的消息*/
     ResultVo getUnreadMessage(HttpServletRequest request);
@@ -49,8 +49,10 @@ public interface HomieService {
     /*获取好友列表*/
     ResultVo getFriendsList(HttpServletRequest request);
 
-    /*shifouhaoyou*/
+    /*判断是否是好友*/
     ResultVo isFriend(String userAccount,HttpServletRequest request);
 
+    /*判断是否有未读消息*/
+    ResultVo isUnreadMessage(HttpServletRequest request);
 
 }

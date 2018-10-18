@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @Author: 束手就擒
  * @Date: 18-7-24 下午9:55
@@ -28,4 +30,13 @@ public interface UserRoleRepository extends JpaRepository<UserRole,Integer>{
             "\tl.userId=u.userId and\n" +
             "\tl.userId=:userId")
     UserManagerVo getUserManagerVo(@Param("userId") Integer userId);
+
+//    @Query(value = "select new com.cinsc.MainView.vo.UserManagerVo(u.userId,u.userName,l.userForbidden,r.name) \n" +
+//            "from Role r,UserRole ur,UserDetail u, UserLogin l \n" +
+//            "where  \n" +
+//            "\tr.id=ur.roleId and\n" +
+//            "\tl.userId=ur.userId and\n" +
+//            "\tl.userId=u.userId and\n" +
+//            "\tl.userId=In(:userIdList)")
+//    List<UserManagerVo> getUserManagerVoList(@Param("userIdList") List<Integer> userIdList);
 }

@@ -30,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Author: 束手就擒
@@ -40,6 +43,7 @@ import java.util.*;
 @Slf4j
 @Transactional
 public class HomieServiceImpl implements HomieService {
+
 
     private FriendsRepository friendsRepository;
     private NoticeRepository noticeRepository;
@@ -96,24 +100,15 @@ public class HomieServiceImpl implements HomieService {
         return userLogin.getUserAccount();
     }
     private Notice getNotice(NoticeDto noticeDto,HttpServletRequest request){
-        Integer userId = ShiroUtil.getUserId(request);
-        UserLogin userLogin = userLoginRepository.findById(userId).orElseThrow(()->new SystemException(ResultEnum.UNkNOWN_ACCOUNT));
-        log.info("装配notice userLogin={}",userLogin);
-        Notice notice = new Notice();
-        notice.setId(KeyUtil.genUniqueKey());
-        notice.setNoticeFrom(userLogin.getUserAccount());
-        notice.setNoticeTo(noticeDto.getTo());
-        notice.setContent(noticeDto.getContent());
-        return notice;
+       return getNotice(noticeDto.getTo(),noticeDto.getContent(),request);
     }
-    private Notice getNotice(Integer userId, String content, HttpServletRequest request){
-        Integer owerId = ShiroUtil.getUserId(request);
-        UserLogin userLogin = userLoginRepository.findById(owerId).orElseThrow(()->new SystemException(ResultEnum.UNkNOWN_ACCOUNT));
-        log.info("装配notice userLogin={}",userLogin);
+    private Notice getNotice(String userAccount, String content, HttpServletRequest request){
+        UserLogin userLogin = userLoginRepository.findById(ShiroUtil.getUserId(request)).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
+        log.info("[装配notice] ------");
         Notice notice = new Notice();
         notice.setId(KeyUtil.genUniqueKey());
         notice.setNoticeFrom(userLogin.getUserAccount());
-        notice.setNoticeTo(getUserAccount(userId));
+        notice.setNoticeTo(userAccount);
         notice.setContent(content);
         return notice;
     }
@@ -128,17 +123,28 @@ public class HomieServiceImpl implements HomieService {
     }
     private List<NoticeVo> getNoticeVo(List<Notice> noticeList){
         List<NoticeVo> noticeVoList = new ArrayList<>();
-        noticeList.forEach(o->{
-            NoticeVo noticeVo = new NoticeVo();
-            BeanUtils.copyProperties(o,noticeVo);
-            noticeVo.setUsername(getUsername(o.getNoticeFrom()));
-            noticeVoList.add(noticeVo);
-        });
+        noticeList.forEach(o-> noticeVoList.add(getNoticeVo(o)));
         return noticeVoList;
     }
 
+    private NoticeVo getNoticeVo(Notice notice){
+        NoticeVo noticeVo = new NoticeVo();
+        BeanUtils.copyProperties(notice,noticeVo);
+        noticeVo.setCreateTime(notice.getCreateTime().getTime());
+        noticeVo.setUsername(getUsername(notice.getNoticeFrom()));
+        return noticeVo;
+    }
+
+    private List<Notice> getDefaultMessage(List<Notice> noticeList){
+        return noticeList.stream().filter(o->o.getTitle().equals(MainViewConstant.NOTICE_DEFAULT_TITLE))
+                                    .collect(Collectors.toList());
+    }
     private boolean ifFriend(String friendAccount, HttpServletRequest request) {
-       return (friendsRepository.findByAIdAndBId(ShiroUtil.getUserId(request),getUserId(friendAccount)) == null);
+       return (ifFriend(getUserId(friendAccount),request));
+
+    }
+    private boolean ifFriend(Integer userId, HttpServletRequest request) {
+        return (friendsRepository.findByAIdAndBId(userId,ShiroUtil.getUserId(request)) == null);
 
     }
     @Override
@@ -175,8 +181,7 @@ public class HomieServiceImpl implements HomieService {
             throw new SystemException(ResultEnum.UNkNOWN_ACCOUNT);
         }
         UserDetail userDetail = userDetailRepository.findByUserId(userLogin.getUserId());
-        String userIcon = PictureToBase64.getImageStr(userDetail.getUserIcon());
-        homieVo.put("userIcon",userIcon);
+        homieVo.put("userIcon",PictureToBase64.getImageStr(userDetail.getUserIcon()));
         homieVo.put("userName",userDetail.getUserName());
         homieVo.put("userGender",userDetail.getUserGender());
         return ResultVoUtil.success(homieVo);
@@ -191,20 +196,20 @@ public class HomieServiceImpl implements HomieService {
 
         }
         Notice notice = getNotice(noticeDto,request);
-        notice.setId(KeyUtil.genUniqueKey());
         notice.setTitle(MainViewConstant.NOTICE_FRIEND_TITLE);
         Notice noticeSave = noticeRepository.save(notice);
-        log.info("发送验证信息 noticeSave={}",noticeSave);
+        log.info("[发送确认信息] noticeSave={}",noticeSave);
         return ResultVoUtil.success();
     }
 
     @Override
+    @Transactional
     public ResultVo confirmCheckMessage(String id, String friendAccount, HttpServletRequest request) {
         /*读消息*/
         readMessage(id);
         /*判断是否已经是好友*/
         if (ifFriend(friendAccount,request)){
-            log.info("确认添加好友 已经是好友 friendAccount={}",friendAccount);
+            log.info("[确认验证信息] 已经是好友 friendAccount={}",friendAccount);
             throw new SystemException(ResultEnum.DATA_ERROR);
         }
 
@@ -212,7 +217,7 @@ public class HomieServiceImpl implements HomieService {
         Integer friendId = getUserId(friendAccount);
         Integer ownerId = ShiroUtil.getUserId(request);
         if (friendId.equals(ownerId)){
-            log.error("确认验证信息 friendId == ownerId");
+            log.error("[确认验证信息] friendId == ownerId");
             throw new SystemException(ResultEnum.DATA_ERROR);
         }
         List<Friends> friendsList = new ArrayList<>();
@@ -236,17 +241,28 @@ public class HomieServiceImpl implements HomieService {
     @Override
     public ResultVo readMessage(String id) {
 
-        Notice notice = noticeRepository.findById(id).orElseThrow(()->new SystemException(ResultEnum.DATA_ERROR));
-        notice.setStatus(NoticeEnum.READ.getCode());
-        noticeRepository.save(notice);
+        Notice notice = noticeRepository.findById(id).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
+        if (notice.getStatus().equals(NoticeEnum.UNREAD.getCode())){
+            notice.setStatus(NoticeEnum.READ.getCode());
+        }else{
+            notice.setStatus(NoticeEnum.UNREAD.getCode());
+        }
+        Notice noticeSave = noticeRepository.save(notice);
+        log.info("[改变消息状态] noticeSave = " ,noticeSave);
         return ResultVoUtil.success();
     }
 
+
     @Override
-    public ResultVo unreadMessage(String id) {
-        Notice notice = noticeRepository.findById(id).orElseThrow(()->new SystemException(ResultEnum.DATA_ERROR));
-        notice.setStatus(NoticeEnum.UNREAD.getCode());
-        noticeRepository.save(notice);
+    @Transactional
+    public ResultVo deleteMessage(String id, HttpServletRequest request) {
+        /*判断是否有权限删除*/
+        Notice notice = noticeRepository.findById(id).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
+        if (!notice.getNoticeTo().equals(getUserAccount(ShiroUtil.getUserId(request)))){
+            log.info("[删除消息] 非法操作");
+            throw new SystemException(ResultEnum.ILLEGAL_OPERATION);
+        }
+        noticeRepository.delete(notice);
         return ResultVoUtil.success();
     }
 
@@ -254,8 +270,15 @@ public class HomieServiceImpl implements HomieService {
     @Override
     @Transactional
     public ResultVo deleteFriend(Integer userId,HttpServletRequest request) {
-        /*可以单方面删除好友*/
         Integer ownerId = ShiroUtil.getUserId(request);
+        /*判断是否为好友*/
+        Friends friends = friendsRepository.findByAIdAndBId(userId,ownerId);
+        if (null == friends){
+            log.info("[删除好友] friends == null");
+            throw new SystemException(ResultEnum.ILLEGAL_OPERATION);
+        }
+        /*可以单方面删除好友*/
+
         friendsRepository.deleteByAIdAndBId(userId, ownerId);
         friendsRepository.deleteByAIdAndBId(ownerId,userId);
         return ResultVoUtil.success();
@@ -263,19 +286,23 @@ public class HomieServiceImpl implements HomieService {
 
     @Override
     public ResultVo sendMessage(Integer userId, String content, HttpServletRequest request) {
-        Notice noticeSave = noticeRepository.save(getNotice(userId,content,request));
-        log.info("发送验证信息 noticeSave={}",noticeSave);
+        UserLogin userLogin = userLoginRepository.findById(userId).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
+        /*判断是否为好友*/
+        Notice noticeSave = noticeRepository.save(getNotice(userLogin.getUserAccount(),content,request));
+        log.info("[发送信息] noticeSave={}",noticeSave);
         return ResultVoUtil.success();
     }
 
     @Override
-    public ResultVo getOwnerMessage(HttpServletRequest request) {
-
-        Integer userId = ShiroUtil.getUserId(request);
-        List<Notice> noticeList = noticeRepository.findByNoticeTo(getUserAccount(userId));
-        log.info("得到属于自己的消息 noticeList={}",noticeList);
-        return ResultVoUtil.success(noticeList);
+    public ResultVo getCheckMessage(HttpServletRequest request) {
+        List<Notice> noticeList = noticeRepository.findByNoticeTo(getUserAccount(ShiroUtil.getUserId(request)));
+        //2018.10.17 得到未读的验证消息
+        List<Notice> noticeFriendList = noticeList.stream().filter(o->o.getTitle().equals(MainViewConstant.NOTICE_FRIEND_TITLE))
+                                                            .filter(o->o.getStatus().equals(NoticeEnum.UNREAD.getCode()))
+                                                            .collect(Collectors.toList());
+        return ResultVoUtil.success(getNoticeVo(noticeFriendList));
     }
+
 
     @Override
     public ResultVo getFriendCards(Integer userId) {
@@ -290,6 +317,7 @@ public class HomieServiceImpl implements HomieService {
         userMsg.put("qq","");
         userMsg.put("phone","");
         userMsg.put("mailbox","");
+        //2018.10.17 覆盖
         if (userDetail.getQqStatus().equals(MsgStatusEnum.OPEN.getCode())){
             userMsg.put("qq",userDetail.getQq());
         }
@@ -309,17 +337,25 @@ public class HomieServiceImpl implements HomieService {
     }
 
     @Override
-    public ResultVo getUnreadMessage(HttpServletRequest request) {
-        List<Notice> noticeList = noticeRepository.findByNoticeToAndStatus(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.UNREAD.getCode());
-        log.info("得到属于自己的未读消息 noticeList={}",noticeList);
+    public ResultVo isUnreadMessage(HttpServletRequest request) {
+        List<Notice> noticeList = noticeRepository.findByNoticeTo(getUserAccount(ShiroUtil.getUserId(request)));
 
-        return ResultVoUtil.success(getNoticeVo(noticeList));
+        Long unreadNum = noticeList.stream().filter(o->o.getStatus().equals(NoticeEnum.UNREAD.getCode()))
+                            .count();
+        return ResultVoUtil.success(unreadNum);
+    }
+
+    @Override
+    public ResultVo getUnreadMessage(HttpServletRequest request) {
+        List<Notice> noticeList = noticeRepository.findByNoticeToAndStatusOrderByCreateTimeDesc(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.UNREAD.getCode());
+        log.info("[得到属于自己的未读消息] noticeList={}",noticeList);
+        return ResultVoUtil.success(getNoticeVo(getDefaultMessage(noticeList)));
     }
 
     @Override
     public ResultVo getReadedMessage(HttpServletRequest request) {
-        List<Notice> noticeList = noticeRepository.findByNoticeToAndStatus(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.READ.getCode());
-        log.info("得到属于自己的已读消息 noticeList={}",noticeList);
-        return ResultVoUtil.success(getNoticeVo(noticeList));
+        List<Notice> noticeList = noticeRepository.findByNoticeToAndStatusOrderByCreateTimeDesc(getUserAccount(ShiroUtil.getUserId(request)),NoticeEnum.READ.getCode());
+        log.info("[得到属于自己的已读消息] noticeList={}",noticeList);
+        return ResultVoUtil.success(getNoticeVo(getDefaultMessage(noticeList)));
     }
 }
