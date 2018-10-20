@@ -144,7 +144,7 @@ public class HomieServiceImpl implements HomieService {
 
     }
     private boolean ifFriend(Integer userId, HttpServletRequest request) {
-        return (friendsRepository.findByAIdAndBId(userId,ShiroUtil.getUserId(request)) == null);
+        return (friendsRepository.findByAIdAndBId(userId,ShiroUtil.getUserId(request)) != null);
 
     }
     @Override

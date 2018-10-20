@@ -3,6 +3,7 @@ package com.cinsc.MainView.service.impl;
 import com.cinsc.MainView.dto.UserDto;
 import com.cinsc.MainView.enums.ForbiddenEnum;
 import com.cinsc.MainView.enums.ResultEnum;
+import com.cinsc.MainView.enums.RoleEnum;
 import com.cinsc.MainView.exception.SystemException;
 import com.cinsc.MainView.model.UserDetail;
 import com.cinsc.MainView.model.UserLogin;
@@ -129,6 +130,10 @@ public class UserServiceImpl implements UserService {
         if (null == userRole){
             log.info("[配置用户角色关系] 该用户不存在角色");
             throw new SystemException(ResultEnum.NOT_FOUND);
+        }
+        if (roleId.compareTo(RoleEnum.MANAGER.getCode()) == 0){
+            log.info("[配置用户角色关系] 非法操作");
+            throw new SystemException(ResultEnum.ILLEGAL_OPERATION);
         }
         userRole.setRoleId(roleId);
         UserRole userRoleSave = userRoleRepository.save(userRole);

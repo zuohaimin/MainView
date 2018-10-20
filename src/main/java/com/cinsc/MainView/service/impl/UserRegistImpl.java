@@ -75,6 +75,10 @@ public class UserRegistImpl implements UserRegist{
         log.info("[注册] 保存用户角色 userRoleSave = {}",userRoleSave);
         return ResultVoUtil.success();
     }
+
+    private boolean isExist(String userAccount){
+        return userLoginRepository.findByUserAccount(userAccount) != null;
+    }
     /**
      * 验证用户是否存在
      * @param userAccount
@@ -82,11 +86,9 @@ public class UserRegistImpl implements UserRegist{
      */
     @Override
     public ResultVo ifNotExitsUserAccount(String userAccount) {
-        UserLogin userLogin = userLoginRepository.findByUserAccount(userAccount);
-        if (userLogin != null){
+        if (isExist(userAccount)){
             return ResultVoUtil.success();
         }
-
         return ResultVoUtil.erro(ResultEnum.UNkNOWN_ACCOUNT);
     }
 
@@ -117,8 +119,7 @@ public class UserRegistImpl implements UserRegist{
 
     @Override
     public ResultVo ifExitsUserAccount(String userAccount) {
-       UserLogin userLogin = userLoginRepository.findByUserAccount(userAccount);
-       if (userLogin == null){
+       if (!isExist(userAccount)){
            return ResultVoUtil.success();
        }
 
@@ -187,9 +188,13 @@ public class UserRegistImpl implements UserRegist{
 //    }
 
     private void saveUserAccount(String password, String userAccount){
+        if (isExist(userAccount)){
+            log.info("[保存用户账户信息] 用户已经存在");
+            throw new SystemException(ResultEnum.ACCOUNT_EXIST);
+        }
         UserLogin userLogin = getUserLogin(password,userAccount);
         UserLogin userLoginSave = userLoginRepository.save(userLogin);
-        log.info("保存用户账户信息 userLoginSave={}",userLoginSave);
+        log.info("[保存用户账户信息] userLoginSave={}",userLoginSave);
     }
     /**
      * 更新密码

@@ -11,6 +11,7 @@ import com.cinsc.MainView.repository.*;
 import com.cinsc.MainView.service.ArrangeService;
 import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
+import com.cinsc.MainView.utils.TimeUtil;
 import com.cinsc.MainView.utils.convert.MapTurnPojo;
 import com.cinsc.MainView.utils.convert.PictureToBase64;
 import com.cinsc.MainView.utils.key.KeyUtil;
@@ -132,6 +133,9 @@ public class ArrangeServiceImpl implements ArrangeService {
 
     }
 
+
+
+
     private Arrange getArrange(String arrangeId, Date now, Date deadLine, String description, Integer totalNum, HttpServletRequest request){
         Arrange arrange = new Arrange();
         arrange.setArrangeId(arrangeId);
@@ -149,12 +153,13 @@ public class ArrangeServiceImpl implements ArrangeService {
         Date now = new Date();
         Date deadline = calculateDate(arrangeDto.getDays(),now);
         String arrangeId = KeyUtil.genUniqueKey();
-        Arrange arrange = getArrange(arrangeId,now,deadline,arrangeDto.getMsg(),arrangeDto.getTransactorIdList().size(),request);
+        Set<Integer> transactorSet = removalRepeat(arrangeDto.getTransactorIdList());
+        Arrange arrange = getArrange(arrangeId,now,deadline,arrangeDto.getMsg(),transactorSet.size(),request);
         Arrange arrangeSave = arrangeRepository.save(arrange);
         log.info("添加工作安排 arrangeSave = {}", arrangeSave);
 
         List<Transactor> transactorList = new ArrayList<>();
-        removalRepeat(arrangeDto.getTransactorIdList()).forEach(o -> {
+        transactorSet.forEach(o -> {
             Transactor transactor = new Transactor();
             transactor.setArrangeId(arrangeId);
             transactor.setUserId(o);
@@ -340,9 +345,9 @@ public class ArrangeServiceImpl implements ArrangeService {
             log.info("[获得日程安排] arrangeScheduleList == null");
             throw new SystemException(ResultEnum.NOT_FOUND);
         }
-        Date now = new Date();
         List<ArrangeScheduleVo> arrangeScheduleVoList = new ArrayList<>();
-        arrangeScheduleList.stream().filter(o->now.getTime()-o.getCreateTime().getTime() <=24*3600000)
+        Date inputDate = new Date(time);
+        arrangeScheduleList.stream().filter(o-> TimeUtil.isSameDate(inputDate,o.getCreateTime()))
                                     .forEach(o->{
                                         ArrangeScheduleVo arrangeScheduleVo = new ArrangeScheduleVo();
                                         BeanUtils.copyProperties(o,arrangeScheduleVo);
