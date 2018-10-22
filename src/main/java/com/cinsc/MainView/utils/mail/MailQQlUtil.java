@@ -24,7 +24,11 @@ public class MailQQlUtil {
         Properties props = new Properties();
         props.put("mail.smtp.auth",mailEntity.getAuth());
         props.put("mail.smtp.host",mailEntity.getHost());
-        props.put("mail.smtp.port",mailEntity.getPort());
+        //2018.10.21
+        props.put("mail.smtp.socketFactory.port", mailEntity.getPort());
+        props.put("mail.smtp.socketFactory.class",
+                "javax.net.ssl.SSLSocketFactory");
+       // props.put("mail.smtp.port",mailEntity.getPort());
         props.put("mail.user",mailEntity.getUser());
         props.put("mail.password",mailEntity.getPassword());
         Authenticator authenticator = new Authenticator() {
@@ -44,7 +48,6 @@ public class MailQQlUtil {
         InternetAddress from = new InternetAddress(mailEntity.getUser());
 
         InternetAddress TO = new InternetAddress(to);
-
         message.setFrom(from);
         message.setRecipient(MimeMessage.RecipientType.TO, TO);
         message.setSubject("测试邮件");

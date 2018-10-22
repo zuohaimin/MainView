@@ -1,7 +1,7 @@
 spring:
   profiles:
   #激活dev配置文件
-    active: dev
+    active: pro
   #激活test配置文件
    #active: test
   #激活pro配置文件

@@ -1,0 +1,25 @@
+uploadDir: /home/zuohaimin/pic
+secret: 171c108198404fbaa2fa7ebc850684aa
+mail:
+      auth: true
+      host: smtp.qiye.aliyun.com
+      port: 465
+      user: noreply@cinslab.com
+      password: cinsC1101
+#kbmawgwgasajdhba
+
+
+server:
+  port: 8080
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 260813zhM!
+    url: jdbc:mysql://localhost:3306/cinsc?characterEncoding=utf-8&useSSL=false
+  jpa:
+    open-in-view: true
+    show-sql: true
+  devtools:
+    livereload:
+      enabled: true
