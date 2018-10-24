@@ -1,5 +1,6 @@
 package com.cinsc.MainView.model;
 
+import com.cinsc.MainView.constant.MainViewConstant;
 import com.cinsc.MainView.enums.GenderEnum;
 import com.cinsc.MainView.enums.MsgStatusEnum;
 import com.cinsc.MainView.enums.RoleEnum;
@@ -69,5 +70,5 @@ public class UserDetail {
     private Integer mailboxStatus = MsgStatusEnum.HIDDEN.getCode();
 
     /*头像*/
-    private String userIcon = KeyUtil.getDefaultUploadDir();
+    private String userIcon = MainViewConstant.getDefaultUploadDir();
 }

@@ -41,7 +41,6 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
-@Transactional
 public class HomieServiceImpl implements HomieService {
 
 
@@ -62,29 +61,6 @@ public class HomieServiceImpl implements HomieService {
     }
 
 
-
-    /**
-     * 获得好友们的Id集合
-     * @param userId
-     * @param friendsList
-     * @return
-     */
-    @Deprecated
-    private List<Integer> getHomieIdList(Integer userId, List<Friends> friendsList){
-        List<Integer> homieIdList = new ArrayList<>();
-        friendsList.forEach(o->{
-            if (o.getAId().equals(userId)){
-                homieIdList.add(o.getBId());
-            }else if (o.getBId().equals(userId)){
-                homieIdList.add(o.getAId());
-            }else{
-                throw new SystemException(ResultEnum.DATA_ERROR);
-            }
-        });
-        return homieIdList;
-    }
-
-
     private Integer getUserId(String userAccount) {
         UserLogin userLogin = userLoginRepository.findByUserAccount(userAccount);
         log.info("获取用户Id userLogin={}", userLogin);
@@ -92,6 +68,15 @@ public class HomieServiceImpl implements HomieService {
             throw new SystemException(ResultEnum.UNkNOWN_ACCOUNT);
         }
         return userLogin.getUserId();
+    }
+
+    private Integer userName2Id(String userName) {
+        UserDetail userDetail = userDetailRepository.findByUserName(userName);
+        log.info("获取用户Id userDetail={}", userDetail);
+        if (userDetail == null) {
+            throw new SystemException(ResultEnum.DATA_ERROR);
+        }
+        return userDetail.getUserId();
     }
 
     private String getUserAccount(Integer userId) {
@@ -102,17 +87,38 @@ public class HomieServiceImpl implements HomieService {
     private Notice getNotice(NoticeDto noticeDto,HttpServletRequest request){
        return getNotice(noticeDto.getTo(),noticeDto.getContent(),request);
     }
-    private Notice getNotice(String userAccount, String content, HttpServletRequest request){
-        UserLogin userLogin = userLoginRepository.findById(ShiroUtil.getUserId(request)).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
-        log.info("[装配notice] ------");
+    private Notice getNotice(String userAccount, String content, String ownerAccount){
         Notice notice = new Notice();
         notice.setId(KeyUtil.genUniqueKey());
-        notice.setNoticeFrom(userLogin.getUserAccount());
+        notice.setNoticeFrom(ownerAccount);
         notice.setNoticeTo(userAccount);
         notice.setContent(content);
         return notice;
     }
+    private Notice getNotice(String userAccount, String content, HttpServletRequest request){
+        UserLogin userLogin = userLoginRepository.findById(ShiroUtil.getUserId(request)).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
+        log.info("[装配notice] ------");
+        return getNotice(userAccount,content,userLogin.getUserAccount());
+    }
+    private Notice getNotice(Integer userId, String content, String ownerAccount){
+        return getNotice(getUserAccount(userId),content,ownerAccount);
+    }
 
+    private List<Notice> getNoticeList(List<Integer> userIdList, String content, HttpServletRequest request){
+        String ownerAccount = userLoginRepository.findById(ShiroUtil.getUserId(request)).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND)).getUserAccount();
+        log.info("[装配notice] ------");
+        List<Notice> noticeList = new ArrayList<>();
+        // List 去重
+        new HashSet<>(userIdList).forEach(o-> noticeList.add(getNotice(o,content,ownerAccount)));
+        return noticeList;
+    }
+
+    private List<Integer> excludeOwner(List<Integer> userIdList, HttpServletRequest request){
+        return userIdList.stream().filter(o->!ShiroUtil.getUserId(request).equals(o))
+                            .collect(Collectors.toList());
+
+
+    }
     private String getUsername(String userAccount){
         UserDetail userDetail = userDetailRepository.findByUserId(getUserId(userAccount));
         if (userDetail == null){
@@ -141,6 +147,10 @@ public class HomieServiceImpl implements HomieService {
     }
     private boolean ifFriend(String friendAccount, HttpServletRequest request) {
        return (ifFriend(getUserId(friendAccount),request));
+
+    }
+    private boolean ifFriendName(String userName, HttpServletRequest request) {
+        return ifFriend(userName2Id(userName),request);
 
     }
     private boolean ifFriend(Integer userId, HttpServletRequest request) {
@@ -188,11 +198,17 @@ public class HomieServiceImpl implements HomieService {
     }
 
     @Override
+    @Transactional
     public ResultVo sendCheckMessage(NoticeDto noticeDto,HttpServletRequest request) {
+        /*判断是否为本人*/
+        if (getUserAccount(ShiroUtil.getUserId(request)).equals(noticeDto.getTo())){
+            log.info("[发送确认消息] 发送对象为自己");
+            throw new SystemException(ResultEnum.NOTICETO_ERRO);
+        }
         /*判断之前是否为好友*/
         if (ifFriend(noticeDto.getTo(),request)){
             log.info("[发送确认信息] 已经为好友");
-            throw new SystemException(ResultEnum.DATA_ERROR);
+            throw new SystemException(ResultEnum.ALREADY_FRIEND);
 
         }
         Notice notice = getNotice(noticeDto,request);
@@ -204,17 +220,17 @@ public class HomieServiceImpl implements HomieService {
 
     @Override
     @Transactional
-    public ResultVo confirmCheckMessage(String id, String friendAccount, HttpServletRequest request) {
+    public ResultVo confirmCheckMessage(String id, String userName, HttpServletRequest request) {
         /*读消息*/
         readMessage(id);
         /*判断是否已经是好友*/
-        if (ifFriend(friendAccount,request)){
-            log.info("[确认验证信息] 已经是好友 friendAccount={}",friendAccount);
-            throw new SystemException(ResultEnum.DATA_ERROR);
+        if (ifFriendName(userName,request)){
+            log.info("[确认验证信息] 已经是好友 userName={}",userName);
+            throw new SystemException(ResultEnum.ALREADY_FRIEND);
         }
 
         /*保存好友 (在数据库中存在两条顺序不相同的记录)*/
-        Integer friendId = getUserId(friendAccount);
+        Integer friendId = userName2Id(userName);
         Integer ownerId = ShiroUtil.getUserId(request);
         if (friendId.equals(ownerId)){
             log.error("[确认验证信息] friendId == ownerId");
@@ -239,6 +255,7 @@ public class HomieServiceImpl implements HomieService {
     }
 
     @Override
+    @Transactional
     public ResultVo readMessage(String id) {
 
         Notice notice = noticeRepository.findById(id).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
@@ -285,11 +302,20 @@ public class HomieServiceImpl implements HomieService {
     }
 
     @Override
+    @Transactional
     public ResultVo sendMessage(Integer userId, String content, HttpServletRequest request) {
         UserLogin userLogin = userLoginRepository.findById(userId).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND));
         /*判断是否为好友*/
         Notice noticeSave = noticeRepository.save(getNotice(userLogin.getUserAccount(),content,request));
         log.info("[发送信息] noticeSave={}",noticeSave);
+        return ResultVoUtil.success();
+    }
+
+    @Override
+    @Transactional
+    public ResultVo massTexting(List<Integer> userIdList, String content, HttpServletRequest request) {
+        List<Notice> noticeListSave = noticeRepository.saveAll(getNoticeList(excludeOwner(userIdList,request),content,request));
+        log.info("[群发消息] noticeListSave",noticeListSave);
         return ResultVoUtil.success();
     }
 

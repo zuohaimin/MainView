@@ -117,6 +117,13 @@ public class SysUserController
         return sysUserService.getRoleList();
     }
 
+    @ApiOperation(value = "获得全部成员的最简信息")
+    @GetMapping("/getAllUserMsg")
+    @CheckPermission(perms = PermsEnum.TEACHER)
+    public ResultVo getAllUserMsg(HttpServletRequest request){
+        return sysUserService.getAllUserMsg(request);
+    }
+
 
 
 }

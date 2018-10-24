@@ -1,12 +1,15 @@
 package com.cinsc.MainView.service.impl;
 
+import com.cinsc.MainView.constant.MainViewConstant;
 import com.cinsc.MainView.dto.UserDetailDto;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
 import com.cinsc.MainView.model.UserDetail;
 import com.cinsc.MainView.model.UserLogin;
+import com.cinsc.MainView.model.UserRole;
 import com.cinsc.MainView.repository.UserDetailRepository;
 import com.cinsc.MainView.repository.UserLoginRepository;
+import com.cinsc.MainView.repository.UserRoleRepository;
 import com.cinsc.MainView.service.PersonalService;
 import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
@@ -20,10 +23,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
@@ -39,16 +42,18 @@ public class PersonalServiceImpl implements PersonalService {
 
     private UserDetailRepository userDetailRepository;
     private UserLoginRepository userLoginRepository;
+    private UserRoleRepository userRoleRepository;
 
     @Autowired
     public PersonalServiceImpl(UserDetailRepository userDetailRepository,
-                               UserLoginRepository userLoginRepository){
+                               UserLoginRepository userLoginRepository,
+                               UserRoleRepository userRoleRepository){
         this.userDetailRepository = userDetailRepository;
         this.userLoginRepository = userLoginRepository;
+        this.userRoleRepository = userRoleRepository;
     }
 
-    @Value("${uploadDir}")
-    private String uploadDir;
+
 
     @Override
     @Transactional
@@ -60,7 +65,7 @@ public class PersonalServiceImpl implements PersonalService {
         String suffixName = fileName.substring(fileName.lastIndexOf("."));
         log.info("上传的后缀名为：" + suffixName);
         // 文件上传后的路径
-        String filePath = uploadDir;
+        String filePath = MainViewConstant.UPLOADDIR;
         // 解决中文问题，liunx下中文路径，图片显示问题
         fileName = UUID.randomUUID() + suffixName;
         String userIcon = filePath+fileName;
@@ -77,9 +82,14 @@ public class PersonalServiceImpl implements PersonalService {
 
         }
         UserDetail userDetail = userDetailRepository.findByUserId(userId);
+        if (userDetail == null){
+            log.info("用户详情为空 userDetail == null");
+            throw new SystemException(ResultEnum.DETAIL_NOT_FOUND);
+        }
         //2018.9.19
         //删除原有的头像
-        if (!KeyUtil.getDefaultUploadDir().equals(userDetail.getUserIcon())){
+        log.info("图片路径：",userDetail.getUserIcon());
+        if (!MainViewConstant.getDefaultUploadDir().equals(userDetail.getUserIcon())){
             if (new File(userDetail.getUserIcon()).delete()){
               log.info("[上传头像] 删除原有图片成功");
             }
@@ -92,6 +102,7 @@ public class PersonalServiceImpl implements PersonalService {
     }
 
     @Override
+    @Transactional
     public ResultVo saveUserDetail(UserDetailDto userDetailDto, HttpServletRequest request) {
         UserDetail userDetail = new UserDetail();
         BeanUtils.copyProperties(userDetailDto,userDetail);
@@ -114,18 +125,7 @@ public class PersonalServiceImpl implements PersonalService {
         return ResultVoUtil.success();
     }
 
-    @Override
-    @Deprecated
-    public ResultVo updateUserDetail(UserDetailDto userDetailDto,HttpServletRequest request) {
-        UserDetail userDetail = new UserDetail();
-        BeanUtils.copyProperties(userDetailDto,userDetail);
 
-        UserDetail userDetailFind = userDetailRepository.findByUserId(ShiroUtil.getUserId(request));
-        userDetail.setDetailId(userDetailFind.getDetailId());
-        UserDetail userDetailSave =  userDetailRepository.save(userDetail);
-        log.info("更新用户详情 userDetailSave={}",userDetailSave);
-        return ResultVoUtil.success();
-    }
 
     @Override
     public ResultVo getUserMsg(Integer userId) {
@@ -158,6 +158,7 @@ public class PersonalServiceImpl implements PersonalService {
     }
 
     @Override
+    @Transactional
     public ResultVo changePwd(String oldPwd, String newPwd, HttpServletRequest request) {
         Integer userId = ShiroUtil.getUserId(request);
         UserLogin userLogin = userLoginRepository.findById(userId).orElseThrow(()->new SystemException(ResultEnum.UNkNOWN_ACCOUNT));

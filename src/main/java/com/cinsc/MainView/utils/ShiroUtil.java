@@ -52,43 +52,9 @@ public class ShiroUtil {
     public static Integer getUserId(HttpServletRequest request){
         return JWTUtil.getUserId(getAuthorization(request));
     }
-    /*public static String getUserAccount(HttpServletRequest request){
-        return JWTUtil.getUserAccount(getAuthorization(request));
-    }
-*/
-    /**
-     * 获取当前会话
-     * @return
-     */
-    public static Session getSession() {
-        return SecurityUtils.getSubject().getSession();
-    }
 
-    /**
-     * 设置Session
-     * @param key
-     * @param value
-     */
-    public static void setSessionAttribute(Object key, Object value) {
-        getSession().setAttribute(key, value);
-    }
 
-    /**
-     * 获取session信息
-     * @param key
-     * @return
-     */
-    public static Object getSessionAttribute(Object key) {
-        return getSession().getAttribute(key);
-    }
 
-    /**
-     * 判断当前用户是否登录
-     * @return
-     */
-    public static boolean isLogin() {
-        return SecurityUtils.getSubject().getPrincipal() != null;
-    }
 
     /**
      * 退出

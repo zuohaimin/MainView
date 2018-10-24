@@ -1,4 +1,4 @@
-uploadDir: /home/zuohaimin/pic
+uploadDir: /home/zuohaimin/pic/
 secret: 171c108198404fbaa2fa7ebc850684aa
 mail:
       auth: true

@@ -88,12 +88,6 @@ public class ArrangeController {
         return arrangeService.getDoneArrange(request);
     }
 
-    @ApiOperation(value = "获取抄送我的工作安排")
-    @RequestMapping(value = "/getCCArrange", method = RequestMethod.GET)
-    public ResultVo getCCArrange(HttpServletRequest request){
-        log.info("[获取抄送我的工作安排]");
-        return arrangeService.getCCArrange(request);
-    }
     @ApiOperation(value = "添加日程安排")
     @RequestMapping(value = "/addScheduleArrange", method = RequestMethod.GET)
     public ResultVo addScheduleArrange(@RequestParam(value = "createTime",required = false)Date createTime,

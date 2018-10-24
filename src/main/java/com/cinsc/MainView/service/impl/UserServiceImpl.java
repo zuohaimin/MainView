@@ -18,9 +18,12 @@ import com.cinsc.MainView.utils.ResultVoUtil;
 import com.cinsc.MainView.utils.ShiroUtil;
 import com.cinsc.MainView.vo.ResultVo;
 import com.cinsc.MainView.vo.UserManagerVo;
+import com.cinsc.MainView.vo.UserRefineVo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -65,21 +68,6 @@ public class UserServiceImpl implements UserService {
         }
         return userManagerVo;
 
-//        userManagerVo.setUserId(userId);
-//        UserDetail userDetail = userDetailRepository.findByUserId(userId);
-//        if (null == userDetail){
-//            log.info("[装配UserManagerVo] userDetail == null");
-//            throw new SystemException(ResultEnum.NOT_FOUND);
-//        }
-//        userManagerVo.setUserName(userDetail.getUserName());
-//        userManagerVo.setForbidCode(userLoginRepository.findById(userId).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND)).getUserForbidden());
-//        UserRole userRole = userRoleRepository.findByUserId(userId);
-//        if (null == userRole){
-//            log.info("[装配UserManagerVo] userRole == null");
-//            throw new SystemException(ResultEnum.NOT_FOUND);
-//        }
-//        userManagerVo.setName(roleRepository.findById(userRole.getRoleId()).orElseThrow(()->new SystemException(ResultEnum.NOT_FOUND)).getName());
-
     }
     @Override
     public ResultVo findByUserName(String userName) {
@@ -99,6 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public ResultVo saveUser(UserDto userDto) {
 
         /*判断该账号是否存在*/
@@ -125,6 +114,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public ResultVo configureUserRole(Integer roleId, Integer userId) {
         UserRole userRole = userRoleRepository.findByUserId(userId);
         if (null == userRole){
@@ -144,6 +134,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional
     public ResultVo forbidUsers(Integer userId) {
         UserLogin userLogin = userLoginRepository.findById(userId).orElseThrow(()-> {
             log.info("管理员页面 [禁用用户] userLoginList == null");
@@ -168,9 +159,11 @@ public class UserServiceImpl implements UserService {
      * @return
      */
     @Override
+    @Transactional
     public ResultVo deleteUser(Integer userId) {
         userRoleRepository.deleteByUserId(userId);
         userLoginRepository.deleteById(userId);
+        userDetailRepository.deleteByUserId(userId);
         return ResultVoUtil.success();
     }
 
@@ -193,5 +186,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResultVo getRoleList() {
         return ResultVoUtil.success(roleRepository.findAll());
+    }
+
+    @Override
+    public ResultVo getAllUserMsg(HttpServletRequest request) {
+        List<UserRefineVo> userRefineVos = new ArrayList<>();
+        userDetailRepository.findAll().stream().filter(o->!ShiroUtil.getUserId(request).equals(o.getUserId()))
+                                            .forEach(o->{
+            UserRefineVo userRefineVo = new UserRefineVo();
+            BeanUtils.copyProperties(o,userRefineVo);
+            userRefineVos.add(userRefineVo);
+        });
+        return ResultVoUtil.success(userRefineVos);
     }
 }

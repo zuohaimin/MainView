@@ -1,7 +1,10 @@
 package com.cinsc.MainView.ctr;
 
+import com.cinsc.MainView.annotation.CheckPermission;
+import com.cinsc.MainView.annotation.enums.PermsEnum;
 import com.cinsc.MainView.dto.NoticeDto;
 import com.cinsc.MainView.enums.ResultEnum;
+import com.cinsc.MainView.enums.RoleEnum;
 import com.cinsc.MainView.exception.SystemException;
 import com.cinsc.MainView.service.HomieService;
 import com.cinsc.MainView.utils.Assert;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @Author: 束手就擒
@@ -77,13 +81,7 @@ public class HomieController {
         return homieService.sendCheckMessage(noticeDto,request);
     }
 
-    /**
-     * 发送信息
-     * @param userId
-     * @param content
-     * @param request
-     * @return
-     */
+
     @ApiOperation(value = "发送信息")
     @RequestMapping(value = "/sendMessage",method = RequestMethod.POST)
     public ResultVo sendMessage(@RequestParam(value = "userId",required = false) Integer userId,
@@ -94,28 +92,30 @@ public class HomieController {
         return homieService.sendMessage(userId, content, request);
     }
 
+    @ApiOperation(value = "群发信息")
+    @CheckPermission(perms= PermsEnum.TEACHER)
+    @RequestMapping(value = "/massTexting",method = RequestMethod.POST)
+    public ResultVo massTexting(@RequestParam(value = "userIdList",required = false) List<Integer> userIdList,
+                                @RequestParam(value = "content",required = false) String content,
+                                HttpServletRequest request) {
+        log.info("userIdList = {}",userIdList);
+        Assert.isNull(userIdList,"userIdList 不能为空 | 含有空格 ");
+        Assert.isBlank(content,"content 不能为空 | 含有空格");
+        return homieService.massTexting(userIdList, content, request);
+    }
 
-    /**
-     * 确认加好友消息
-     * @param id
-     * @param friendAccount
-     * @return
-     */
+
     @ApiOperation(value = "确认加好友消息")
     @RequestMapping(value = "/confirmCheckMessage", method = RequestMethod.GET)
     public ResultVo confirmCheckMessage(@RequestParam(value = "id",required = false) String id,
-                                        @RequestParam(value = "friendAccount",required = false) String friendAccount,
+                                        @RequestParam(value = "userName",required = false) String userName,
                                         HttpServletRequest request){
         Assert.isBlank(id,"id不能为空|不能含有空格");
-        Assert.isBlank(friendAccount,"账户名不能为空|不能含有空格");
-        return homieService.confirmCheckMessage(id, friendAccount,request);
+        Assert.isBlank(userName,"userName不能为空|不能含有空格");
+        return homieService.confirmCheckMessage(id, userName,request);
     }
 
-    /**
-     * 设置消息为已读
-     * @param id
-     * @return
-     */
+
     @ApiOperation(value = "改变消息状态")
     @RequestMapping(value = "/readMessage",method = RequestMethod.GET)
     public ResultVo readMessage(@RequestParam(value = "id",required = false) String id){

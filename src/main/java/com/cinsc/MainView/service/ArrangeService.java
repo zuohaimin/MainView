@@ -31,9 +31,6 @@ public interface ArrangeService {
     /*获取我执行的工作安排*/
     ResultVo getDoneArrange(HttpServletRequest request);
 
-    /*获取抄送我的工作安排*/
-    ResultVo getCCArrange(HttpServletRequest request);
-
     /*新建日程安排*/
     ResultVo addScheduleArrange(Date createTime,Date deadLine, String description, HttpServletRequest request);
 

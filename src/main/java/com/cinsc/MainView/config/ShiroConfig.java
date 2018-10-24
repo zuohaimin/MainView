@@ -1,4 +1,5 @@
 package com.cinsc.MainView.config;
+import com.cinsc.MainView.constant.MainViewConstant;
 import com.cinsc.MainView.jwt.JWTFilter;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
@@ -42,11 +43,12 @@ public class ShiroConfig {
     }
 
     @Bean("shiroFilter")
-    public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager){
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager,JWTFilter jwtFilter){
         ShiroFilterFactoryBean factoryBean = new ShiroFilterFactoryBean();
         // 添加自己的过滤器并且取名为jwt
         Map<String, Filter> filterMap = new HashMap<>();
-        filterMap.put("jwt", new JWTFilter());
+        //2018.10.22 注入拦截器
+        filterMap.put("jwt", jwtFilter);
         factoryBean.setFilters(filterMap);
 
         factoryBean.setSecurityManager(securityManager);
@@ -71,6 +73,12 @@ public class ShiroConfig {
         filterRuleMap.put("/**", "anon");
         factoryBean.setFilterChainDefinitionMap(filterRuleMap);
         return factoryBean;
+    }
+
+    @Bean("jwtFilter")
+    public JWTFilter jwtFilter(MainViewConstant mainViewConstant){
+
+        return new JWTFilter(mainViewConstant.SECRET);
     }
 
     /*开始注解服务*/

@@ -9,9 +9,9 @@ package com.cinsc.MainView.utils.mail;
 public class MailContent {
     public static String getContent(String sms){
         StringBuilder sb = new StringBuilder();
-        sb.append("【束手就擒】你好，这里是****。\n");
+        sb.append("【束手就擒】你好，这里是西南石油大学CINSC\n");
         sb.append("你的验证码为：");
-        sb.append(sms+"\n");
+        sb.append(sms);
         return sb.toString();
     }
 }

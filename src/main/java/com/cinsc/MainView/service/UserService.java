@@ -40,4 +40,7 @@ public interface UserService {
     /*获得权限表*/
     ResultVo getRoleList();
 
+    /*获得全部成员的最简信息*/
+    ResultVo getAllUserMsg(HttpServletRequest request);
+
 }

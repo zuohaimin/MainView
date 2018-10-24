@@ -16,4 +16,5 @@ public interface UserDetailRepository extends JpaRepository<UserDetail,String>{
     UserDetail findByUserId(Integer userId);
     List<UserDetail> findByUserIdIn(List<Integer> userIdList);
     UserDetail findByUserName(String userName);
+    void deleteByUserId(Integer userId);
 }

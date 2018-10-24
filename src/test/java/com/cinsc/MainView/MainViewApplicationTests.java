@@ -1,5 +1,6 @@
 package com.cinsc.MainView;
 
+import com.cinsc.MainView.constant.MainViewConstant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +14,6 @@ public class MainViewApplicationTests {
 
     @Test
     public void test(){
-
+//        System.out.println(MainViewConstant.SECRET);
     }
 }

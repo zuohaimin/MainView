@@ -157,7 +157,7 @@ public class AnonController {
      */
     @ApiOperation(value = "注册并保存用户账户和密码(userLogin)")
     @RequestMapping(value = "/saveUserAccount",method = RequestMethod.POST)
-    public ResultVo saveUserAccount(@Valid @RequestBody UserRegistDto userRegistDto,
+    public ResultVo saveUserAccount(@Valid UserRegistDto userRegistDto,
                                     BindingResult bindingResult){
         if (bindingResult.hasErrors()){
             log.error("[注册用户]参数不正确:userRegistDto={}",userRegistDto);

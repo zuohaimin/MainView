@@ -25,16 +25,29 @@ public enum ResultEnum {
 
     SMS_ERROR(9,"验证码不匹配"),
 
-    //ACCOUNT_NOT_EXIST(10,"该账号不存在"),
 
     FILE_NOT_EXITS(11,"文件为空"),
+
     FRIENDLIST_NULL(12,"好友列表为空"),
+
     DATA_ERROR(13,"数据异常"),
+
     TOKEN_ERRO(14,"token异常"),
+
     TOKEN_EXPIRE(15,"token过时"),
+
     DETAIL_NOT_FOUND(16,"用户详情为空"),
+
     NOT_FOUND(17,"NOT FOUND"),
-    ILLEGAL_OPERATION(18,"非法操作");
+
+    ILLEGAL_OPERATION(18,"非法操作"),
+
+    ALREADY_FRIEND(19,"已经是好友"),
+
+    NOTICETO_ERRO(20,"消息对象异常"),
+    PWD_LEN_ERRO(21,"密码长度小于6");
+
+
 
 
     private Integer code;

@@ -50,7 +50,7 @@ public class MailQQlUtil {
         InternetAddress TO = new InternetAddress(to);
         message.setFrom(from);
         message.setRecipient(MimeMessage.RecipientType.TO, TO);
-        message.setSubject("测试邮件");
+        message.setSubject("CINSC");
         message.setContent(content,"text/html;charset=UTF-8");
         Transport.send(message);
     }

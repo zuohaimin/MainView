@@ -19,9 +19,6 @@ public interface PersonalService {
     /*保存用户详情*/
     ResultVo saveUserDetail(UserDetailDto userDetailDto,HttpServletRequest request);
 
-    /*更新用户详情*/
-    ResultVo updateUserDetail(UserDetailDto userDetailDto,HttpServletRequest request);
-
     /*获取用户基本信息*/
     ResultVo getUserMsg(Integer userId);
 

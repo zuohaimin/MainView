@@ -2,8 +2,11 @@ package com.cinsc.MainView.service;
 
 import com.cinsc.MainView.dto.NoticeDto;
 import com.cinsc.MainView.vo.ResultVo;
+import org.apache.catalina.LifecycleState;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.transform.Result;
+import java.util.List;
 
 /**
  * @Author: 束手就擒
@@ -20,7 +23,7 @@ public interface HomieService {
     ResultVo sendCheckMessage(NoticeDto noticeDto,HttpServletRequest request);
 
     /*好友验证信息确认*/
-    ResultVo confirmCheckMessage(String id, String friendAccount,HttpServletRequest request);
+    ResultVo confirmCheckMessage(String id, String userName,HttpServletRequest request);
 
     /*改变消息状态*/
     ResultVo readMessage(String id);
@@ -33,6 +36,9 @@ public interface HomieService {
 
     /*发送消息*/
     ResultVo sendMessage(Integer userId, String content, HttpServletRequest request);
+
+    /*群发消息*/
+    ResultVo massTexting(List<Integer> userIdList, String content, HttpServletRequest request);
 
     /*获得好友验证消息*/
     ResultVo getCheckMessage(HttpServletRequest request);

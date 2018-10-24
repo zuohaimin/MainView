@@ -42,17 +42,14 @@ public class ArrangeServiceImpl implements ArrangeService {
     private ArrangeRepository arrangeRepository;
     private UserDetailRepository userDetailRepository;
     private TransactorRepository transactorRepository;
-    private CcRepository ccRepository;
 
     @Autowired
     public ArrangeServiceImpl(ArrangeRepository arrangeRepository,
                               UserDetailRepository userDetailRepository,
-                              TransactorRepository transactorRepository,
-                              CcRepository ccRepository) {
+                              TransactorRepository transactorRepository) {
         this.arrangeRepository = arrangeRepository;
         this.userDetailRepository = userDetailRepository;
         this.transactorRepository = transactorRepository;
-        this.ccRepository = ccRepository;
     }
 
 
@@ -167,16 +164,6 @@ public class ArrangeServiceImpl implements ArrangeService {
         });
         List<Transactor> transactorListSave = transactorRepository.saveAll(transactorList);
         log.info("添加执行人集 transactorListSave = {}", transactorListSave);
-
-//        List<Cc> ccList = new ArrayList<>();
-//        arrangeDto.getCarbonCopyIdList().forEach(o -> {
-//            Cc cc = new Cc();
-//            cc.setArrangeId(arrangeId);
-//            cc.setUserId(o);
-//            ccList.add(cc);
-//        });
-//        List<Cc> ccListSave = ccRepository.saveAll(ccList);
-//        log.info("添加抄送人集 ccListSave = {}", ccListSave);
         return ResultVoUtil.success();
     }
 
@@ -263,20 +250,6 @@ public class ArrangeServiceImpl implements ArrangeService {
     //TODO N+1
     @Override
     public ResultVo getDoneArrange(HttpServletRequest request) {
-//        List<Transactor> transactorList = transactorRepository.findByUserId(ShiroUtil.getUserId(request));
-//        if (null == transactorList){
-//            log.info("[获得我执行的安排] transactorList == null");
-//            throw new SystemException(ResultEnum.NOT_FOUND);
-//        }
-//        Set<String> arrangeIdSet = new HashSet<>();
-//        transactorList.forEach(o ->
-//                arrangeIdSet.add(o.getArrangeId())
-//        );
-//        List<Arrange> arrangeList = arrangeRepository.findAllById(arrangeIdSet);
-//        if (arrangeList.size() == 0){
-//            log.info("[获得我执行的安排] arrangeList == null");
-//            throw new SystemException(ResultEnum.NOT_FOUND);
-//        }
         Integer userId = ShiroUtil.getUserId(request);
         List<Transactor> transReadyList = transactorRepository.findByUserIdAndStatus(userId,TransactorStatusEnum.READY.getCode());
         List<Transactor> transFinishList = transactorRepository.findByUserIdAndStatus(userId,TransactorStatusEnum.FINISHED.getCode());
@@ -298,17 +271,6 @@ public class ArrangeServiceImpl implements ArrangeService {
         return ResultVoUtil.success(arrangeVoMapList);
     }
 
-    @Override
-    public ResultVo getCCArrange(HttpServletRequest request) {
-        List<Cc> ccList = ccRepository.findByUserId(ShiroUtil.getUserId(request));
-        Set<String> arrangeIdSet = new HashSet<>();
-        ccList.forEach(o ->
-                arrangeIdSet.add(o.getArrangeId())
-        );
-        List<Arrange> arrangeList = arrangeRepository.findAllById(arrangeIdSet);
-        List<Arrange> arrangeWorkList = getWorkArrange(arrangeList);
-        return ResultVoUtil.success(getArrangeVoList(arrangeWorkList));
-    }
 
     @Override
     public ResultVo addScheduleArrange(Date createTime, Date deadLine, String description, HttpServletRequest request) {

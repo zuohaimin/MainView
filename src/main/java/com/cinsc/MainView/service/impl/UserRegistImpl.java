@@ -54,27 +54,8 @@ public class UserRegistImpl implements UserRegist{
         this.userRoleRepository = userRoleRepository;
     }
 
-    @Value("${secret}")
-    private String secret;
 
 
-    /**
-     * 赋予用户角色
-     * @param userAccount
-     */
-    private ResultVo giveUserRole(String userAccount){
-        UserLogin userLogin = userLoginRepository.findByUserAccount(userAccount);
-        if (null == userLogin){
-            log.info("[注册] 查询用户 userLogin == null");
-            throw new SystemException(ResultEnum.UNkNOWN_ACCOUNT);
-        }
-        UserRole userRole = new UserRole();
-        userRole.setUserId(userLogin.getUserId());
-        userRole.setRoleId(MainViewConstant.DEFAULT_ROLE_ID);
-        UserRole userRoleSave = userRoleRepository.save(userRole);
-        log.info("[注册] 保存用户角色 userRoleSave = {}",userRoleSave);
-        return ResultVoUtil.success();
-    }
 
     private boolean isExist(String userAccount){
         return userLoginRepository.findByUserAccount(userAccount) != null;
@@ -112,7 +93,7 @@ public class UserRegistImpl implements UserRegist{
             throw new SystemException(ResultEnum.USERNAME_OR_PASSWORD_ERROR);
         }
         /*生成Token返回客户端*/
-        String token = JWTUtil.sign(userAccount,userLogin.getUserId(),secret);
+        String token = JWTUtil.sign(userLogin.getUserId(),MainViewConstant.SECRET);
 
         return ResultVoUtil.success(token);
     }
@@ -127,6 +108,7 @@ public class UserRegistImpl implements UserRegist{
     }
 
     @Override
+    @Transactional
     public ResultVo sendSMS(String userAccount) {
         /*发送验证码*/
         String sms = JavaSMS.getSMS();
@@ -171,23 +153,8 @@ public class UserRegistImpl implements UserRegist{
         return userLogin;
     }
 
-//    /**
-//     * 保存账户密码信息
-//     * @param password
-//     * @param userAccount
-//     * @return
-//     */
-//    @Override
-//    public ResultVo saveUserAccount(String password, String userAccount) {
-//        UserLogin userLogin = getUserLogin(password,userAccount);
-//        UserLogin userLoginSave = userLoginRepository.save(userLogin);
-//        log.info("保存用户账户信息 userLoginSave={}",userLoginSave);
-//
-//
-//        return ResultVoUtil.success();
-//    }
 
-    private void saveUserAccount(String password, String userAccount){
+    private Integer saveUserAccount(String password, String userAccount){
         if (isExist(userAccount)){
             log.info("[保存用户账户信息] 用户已经存在");
             throw new SystemException(ResultEnum.ACCOUNT_EXIST);
@@ -195,6 +162,20 @@ public class UserRegistImpl implements UserRegist{
         UserLogin userLogin = getUserLogin(password,userAccount);
         UserLogin userLoginSave = userLoginRepository.save(userLogin);
         log.info("[保存用户账户信息] userLoginSave={}",userLoginSave);
+        return userLoginSave.getUserId();
+    }
+
+    /**
+     * 赋予用户角色
+     * @param userId
+     */
+    private ResultVo giveUserRole(Integer userId){
+        UserRole userRole = new UserRole();
+        userRole.setUserId(userId);
+        userRole.setRoleId(MainViewConstant.DEFAULT_ROLE_ID);
+        UserRole userRoleSave = userRoleRepository.save(userRole);
+        log.info("[注册] 保存用户角色 userRoleSave = {}",userRoleSave);
+        return ResultVoUtil.success();
     }
     /**
      * 更新密码
@@ -202,6 +183,7 @@ public class UserRegistImpl implements UserRegist{
      * @return
      */
     @Override
+    @Transactional
     public ResultVo updateUserAccount(UserRegistDto userRegistDto) {
         checkSMS(userRegistDto.getSms(),userRegistDto.getUserAccount());
         Integer userId = userLoginRepository.findByUserAccount(userRegistDto.getUserAccount()).getUserId();
@@ -215,11 +197,10 @@ public class UserRegistImpl implements UserRegist{
 
     @Override
     @Transactional
+    //2018.10.23
     public ResultVo regist(UserRegistDto userRegistDto) {
         checkSMS(userRegistDto.getSms(),userRegistDto.getUserAccount());
-        saveUserAccount(userRegistDto.getUserPwd(), userRegistDto.getUserAccount());
-
-        return  giveUserRole(userRegistDto.getUserAccount());
-
+        Integer userId = saveUserAccount(userRegistDto.getUserPwd(), userRegistDto.getUserAccount());
+        return giveUserRole(userId);
     }
 }

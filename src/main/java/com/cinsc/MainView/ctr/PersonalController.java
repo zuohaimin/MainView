@@ -74,23 +74,6 @@ public class PersonalController {
         return personalService.saveUserDetail(userDetailDto,request);
     }
 
-    /**
-     * 更新用户详情
-     * @param userDetailDto
-     * @param bindingResult
-     * @return
-     */
-    @ApiOperation(value = "更新用户详情")
-    @RequestMapping(value = "/updateUserDetail", method = RequestMethod.POST)
-    public ResultVo updateUserDetail(@Valid @RequestBody UserDetailDto userDetailDto,
-                                   BindingResult bindingResult,
-                                     HttpServletRequest request){
-        if (bindingResult.hasErrors()) {
-            log.error("[更新用户详情] userDetailDto = {}",userDetailDto);
-            throw new SystemException(ResultEnum.PARAM_ERROR);
-        }
-        return personalService.updateUserDetail(userDetailDto,request);
-    }
 
 
     @ApiOperation(value = "获取用户基本信息")
@@ -115,6 +98,10 @@ public class PersonalController {
 
         Assert.isBlank(oldPwd,"旧密码不能为空|不能含有空格");
         Assert.isBlank(newPwd,"新密码不能为空|不能含有空格");
+        if (newPwd.length() <6){
+            log.info("修改密码 长度小于6");
+            throw new SystemException(ResultEnum.PWD_LEN_ERRO);
+        }
         return personalService.changePwd(oldPwd,newPwd,request);
     }
 

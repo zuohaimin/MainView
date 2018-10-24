@@ -1,12 +1,15 @@
 package com.cinsc.MainView.jwt;
 
+import com.cinsc.MainView.constant.MainViewConstant;
 import com.cinsc.MainView.enums.ResultEnum;
 import com.cinsc.MainView.exception.SystemException;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.ServletRequest;
@@ -18,11 +21,11 @@ import java.io.UnsupportedEncodingException;
 
 public class JWTFilter extends BasicHttpAuthenticationFilter {
 
-    private String secret = "171c1081-9840-4fba-a2fa-7ebc850684aa";
+    private String secret;
 
-
-    private Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-
+    public JWTFilter(String secret) {
+        this.secret = secret;
+    }
 
     /**
      * 判断用户是否想要登入。
@@ -42,10 +45,9 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
     protected boolean executeLogin(ServletRequest request, ServletResponse response){
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         String authorization = httpServletRequest.getHeader("Authorization");
-        String userAccount = JWTUtil.getUserAccount(authorization);
         Integer userId = JWTUtil.getUserId(authorization);
-        System.out.println("authorization = "+authorization+", userId = "+userId+", userAccount = "+userAccount+", secret = "+secret);
-        return JWTUtil.verify(authorization,userAccount,userId,secret);
+        System.out.println("authorization = "+authorization+", userId = "+userId+", secret = "+secret);
+        return JWTUtil.verify(authorization,userId,secret);
     }
 
     /**

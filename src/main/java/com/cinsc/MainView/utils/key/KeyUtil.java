@@ -12,25 +12,7 @@ import java.util.Random;
  * @Date: 18-3-22 下午7:18
  * @Description:
  */
-@Component
 public class KeyUtil {
-
-    private static String uploadDir;
-
-    @Value("${uploadDir}")
-    public void setUploadDir(String dir){
-        uploadDir = dir;
-    }
-
-    public static String getDefaultUploadDir(){
-        return uploadDir+"123.jpg";
-    }
-    public static String getUploadDir(){
-        return uploadDir;
-    }
-
-
-
 
     /**
      * 生成唯一主键
